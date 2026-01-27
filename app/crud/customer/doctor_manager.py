@@ -28,10 +28,19 @@ class DoctorManager:
         finally:
             await self.db_manager.disconnect()
 
-    async def get_doctors(self):
+    async def get_doctors(self, postalcode: str = None, specialization: str = None):
         try:
             await self.db_manager.connect()
-            return await self.db_manager.read(Doctor, {})
+            filters = {}
+
+            if postalcode:
+                filters["PostalCode"] = postalcode
+
+            if specialization:
+                filters["Specialization"] = specialization
+
+            # If both provided → both applied automatically
+            return await self.db_manager.read(Doctor, filters)
         finally:
             await self.db_manager.disconnect()
 

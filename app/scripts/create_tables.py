@@ -83,6 +83,8 @@ class TableCreator:
         sql = """
         CREATE TABLE IF NOT EXISTS Medicine (
             MedicineId INTEGER PRIMARY KEY AUTOINCREMENT,
+            MedicalTypeId INTEGER,
+            MedicineCategoryId INTEGER,
             Name TEXT NOT NULL,
             GenericName TEXT,
             DosageForm TEXT,
@@ -92,8 +94,7 @@ class TableCreator:
             Size TEXT,
             UnitPrice REAL NOT NULL,
             TherapeuticClass TEXT,
-            ImgUrl TEXT,
-            MedicineCategoryId INTEGER
+            ImgUrl TEXT            
         );
         """
         self._execute(sql, "Medicine")
@@ -599,7 +600,7 @@ class TableCreator:
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("Doctor")
+        # self.remove_table_if_exists("Medicine")
 
 
         # tables = [

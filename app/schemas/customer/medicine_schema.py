@@ -53,6 +53,8 @@ class MedicineCategoryRead(MedicineCategoryBase):
 # Medicine Schemas
 # ------------------------------------------------
 class MedicineBase(BaseModel):
+    MedicalTypeId: Optional[int]
+    MedicineCategoryId: Optional[int]
     Name: Optional[str]
     GenericName: Optional[str]
     DosageForm: Optional[str]
@@ -65,7 +67,7 @@ class MedicineBase(BaseModel):
     TherapeuticClass: Optional[str]
     ImgUrl: Optional[str]
 
-    MedicineCategoryId: Optional[int]
+    
 
     class Config:
         from_attributes = True

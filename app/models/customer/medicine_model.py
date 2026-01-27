@@ -32,6 +32,8 @@ class Medicine(Base):
     __tablename__ = "Medicine"
 
     MedicineId = Column(Integer, primary_key=True, index=True)
+    MedicalTypeId = Column(Integer, nullable=True)
+    MedicineCategoryId = Column(Integer, nullable=True)
     Name = Column(String, nullable=False)
     GenericName = Column(String, nullable=True)
     DosageForm = Column(String, nullable=True)
@@ -44,7 +46,7 @@ class Medicine(Base):
     TherapeuticClass = Column(String, nullable=True)
     ImgUrl = Column(String, nullable=True)
 
-    MedicineCategoryId = Column(Integer, nullable=True)
+    
 
 
 

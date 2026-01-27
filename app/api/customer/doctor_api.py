@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
 from ...config import settings
 from ...crud.customer.doctor_manager import (
     DoctorManager, DoctorAppointmentManager,
@@ -83,8 +83,15 @@ class DoctorAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_doctors(self):
-        return await self.manager.get_doctors()
+    async def get_doctors(
+        self,
+        postalcode: str = Query(None),
+        specialization: str = Query(None)
+    ):
+        return await self.manager.get_doctors(
+            postalcode=postalcode,
+            specialization=specialization
+        )
 
     async def get_doctor_by_id(self, doctor_id: int):
         doctor = await self.manager.get_doctor_by_id(doctor_id)

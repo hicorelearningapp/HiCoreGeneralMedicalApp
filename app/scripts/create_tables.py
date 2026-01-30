@@ -169,6 +169,8 @@ class TableCreator:
             OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
             CustomerId INTEGER NOT NULL,
             RetailerId INTEGER NOT NULL,
+            RetailerName TEXT NOT NULL,
+
             OrderDateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
             ExpectedDelivery DATETIME,
             
@@ -181,14 +183,15 @@ class TableCreator:
             -- Payment info
             PaymentMode TEXT,
             PaymentStatus TEXT DEFAULT 'Pending',
-            Amount REAL DEFAULT 0,  -- total including GST
+            
             
             -- Prescription info
             PrescriptionFileUrl TEXT,
             PrescriptionVerified BOOLEAN DEFAULT 0,
             
-            -- Order state
-            OrderStatus TEXT DEFAULT 'New',
+            
+            TotalAmount REAL DEFAULT 0,  -- total including GST
+            Status TEXT DEFAULT 'New',
             
             -- Audit fields
             CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -206,13 +209,13 @@ class TableCreator:
             CustomerId INTEGER NOT NULL,
             RetailerId INTEGER NOT NULL,
             MedicineId INTEGER NOT NULL,
+            MedicineName TEXT NOT NULL,
             Quantity INTEGER NOT NULL,
-            GSTPercentage REAL NOT NULL,
+            Price REAL NOT NULL,
             TotalAmount REAL NOT NULL
         );
         """
         self._execute(sql, "OrderItem")
-
 
 
 
@@ -573,34 +576,34 @@ class TableCreator:
     # ------------------------------------------------------------------
     def create_all_tables(self):
         # Customer tables
-        self.create_customer_table()
-        self.create_medicine_type_table()
-        self.create_medicine_category_table()
-        self.create_medicine_table()
-        # self.create_medicine_info_table()
+        # self.create_customer_table()
+        # self.create_medicine_type_table()
+        # self.create_medicine_category_table()
+        # self.create_medicine_table()
+        # # self.create_medicine_info_table()
 
 
-        # self.create_customer_notification_table()
-        self.create_cart_table()
-        self.create_cart_item_table()
-        self.create_prescription_table()
+        # # self.create_customer_notification_table()
+        # self.create_cart_table()
+        # self.create_cart_item_table()
+        # self.create_prescription_table()
 
         self.create_order_table()
         self.create_order_item_table()
                 
-        # self.create_lab_table()
-        # self.create_test_table()
-        # self.create_appointment_table()
+        # # self.create_lab_table()
+        # # self.create_test_table()
+        # # self.create_appointment_table()
 
-        # self.create_doctor_table()
-        # self.create_doctor_appointment_table()
+        # # self.create_doctor_table()
+        # # self.create_doctor_appointment_table()
 
-        self.create_retailer_table()
+        # self.create_retailer_table()
 
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("Medicine")
+        # self.remove_table_if_exists("OrderItem")
 
 
         # tables = [
@@ -623,3 +626,87 @@ if __name__ == "__main__":
     creator = TableCreator(sqlite_url)
     creator.create_all_tables()
 
+
+
+
+
+
+
+
+
+# from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
+
+# # ------------------------
+# # Database setup
+# # ------------------------
+# DATABASE_URL = "sqlite:///medical.db"  # Change to your DB URL if using MySQL/PostgreSQL
+
+# engine = create_engine(DATABASE_URL, echo=True)
+# SessionLocal = sessionmaker(bind=engine)
+# Base = declarative_base()
+
+# # ------------------------
+# # Medicine Table
+# # ------------------------
+# class Medicine(Base):
+#     __tablename__ = "Medicine"
+
+#     MedicineId = Column(Integer, primary_key=True, index=True)
+#     MedicalTypeId = Column(Integer, nullable=True)
+#     MedicineCategoryId = Column(Integer, nullable=True)
+#     Name = Column(String, nullable=False)
+#     GenericName = Column(String, nullable=True)
+#     DosageForm = Column(String, nullable=True)
+#     Strength = Column(String, nullable=True)
+#     Manufacturer = Column(String, nullable=True)
+#     PrescriptionRequired = Column(Boolean, default=False)
+#     Size = Column(Integer, nullable=True)
+#     UnitPrice = Column(Float, nullable=False)
+#     TherapeuticClass = Column(String, nullable=True)
+#     ImgUrl = Column(String, nullable=True)
+
+# # ------------------------
+# # Create Table
+# # ------------------------
+# Base.metadata.create_all(engine)
+
+# # ------------------------
+# # Sample Medicines
+# # ------------------------
+# medicines = [
+#     # Pain & Fever
+#     # Medicine(MedicalTypeId=1, MedicineCategoryId=1, Name="Paracetamol", GenericName="Paracetamol", DosageForm="Tablet", Strength="500mg", Manufacturer="ABC Pharma", PrescriptionRequired=False, Size=10, UnitPrice=1.5, TherapeuticClass="Analgesic/Antipyretic", ImgUrl=""),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=1, Name="Ibuprofen", GenericName="Ibuprofen", DosageForm="Tablet", Strength="400mg", Manufacturer="XYZ Pharma", PrescriptionRequired=False, Size=10, UnitPrice=2.0, TherapeuticClass="NSAID", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=1, Name="Diclofenac", GenericName="Diclofenac Sodium", DosageForm="Tablet", Strength="50mg", Manufacturer="MediCare Ltd", PrescriptionRequired=True, Size=10, UnitPrice=2.5, TherapeuticClass="NSAID", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=1, Name="Aspirin", GenericName="Acetylsalicylic Acid", DosageForm="Tablet", Strength="75mg", Manufacturer="HealthCorp", PrescriptionRequired=False, Size=10, UnitPrice=1.8, TherapeuticClass="Analgesic", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=1, Name="Naprosyn", GenericName="Naproxen", DosageForm="Tablet", Strength="250mg", Manufacturer="Global Pharma", PrescriptionRequired=True, Size=10, UnitPrice=3.0, TherapeuticClass="NSAID", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+
+#     # Cold & Cough
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=2, Name="Cetirizine", GenericName="Cetirizine Hydrochloride", DosageForm="Tablet", Strength="10mg", Manufacturer="ABC Pharma", PrescriptionRequired=False, Size=10, UnitPrice=1.2, TherapeuticClass="Antihistamine", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=2, Name="Loratadine", GenericName="Loratadine", DosageForm="Tablet", Strength="10mg", Manufacturer="XYZ Pharma", PrescriptionRequired=False, Size=10, UnitPrice=1.5, TherapeuticClass="Antihistamine", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=2, Name="Dextromethorphan", GenericName="Dextromethorphan Hydrobromide", DosageForm="Syrup", Strength="10mg/5ml", Manufacturer="MediCare Ltd", PrescriptionRequired=False, Size=100, UnitPrice=2.5, TherapeuticClass="Antitussive", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=2, Name="Phenylephrine", GenericName="Phenylephrine Hydrochloride", DosageForm="Tablet", Strength="5mg", Manufacturer="HealthCorp", PrescriptionRequired=False, Size=10, UnitPrice=1.8, TherapeuticClass="Decongestant", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=2, Name="Ambroxol", GenericName="Ambroxol Hydrochloride", DosageForm="Syrup", Strength="30mg/5ml", Manufacturer="Global Pharma", PrescriptionRequired=False, Size=100, UnitPrice=2.0, TherapeuticClass="Mucolytic", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+
+#     # Infection & Immunity
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=3, Name="Amoxicillin", GenericName="Amoxicillin", DosageForm="Capsule", Strength="500mg", Manufacturer="ABC Pharma", PrescriptionRequired=True, Size=10, UnitPrice=2.0, TherapeuticClass="Antibiotic", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=3, Name="Azithromycin", GenericName="Azithromycin", DosageForm="Tablet", Strength="500mg", Manufacturer="XYZ Pharma", PrescriptionRequired=True, Size=3, UnitPrice=5.0, TherapeuticClass="Antibiotic", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=3, Name="Cefixime", GenericName="Cefixime", DosageForm="Capsule", Strength="200mg", Manufacturer="MediCare Ltd", PrescriptionRequired=True, Size=10, UnitPrice=3.5, TherapeuticClass="Antibiotic", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=3, Name="Multivitamin Syrup", GenericName="Multivitamins", DosageForm="Syrup", Strength="5ml", Manufacturer="HealthCorp", PrescriptionRequired=False, Size=100, UnitPrice=2.5, TherapeuticClass="Immunity Booster", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg"),
+#     Medicine(MedicalTypeId=1, MedicineCategoryId=3, Name="Vitamin C", GenericName="Ascorbic Acid", DosageForm="Tablet", Strength="500mg", Manufacturer="Global Pharma", PrescriptionRequired=False, Size=10, UnitPrice=1.0, TherapeuticClass="Immunity Booster", ImgUrl="Images/Medicine/504299e9-3423-41aa-88cc-bb2c58cf0773.jpg")
+# ]
+
+# # ------------------------
+# # Insert into DB
+# # ------------------------
+# def insert_medicines():
+#     db = SessionLocal()
+#     db.add_all(medicines)
+#     db.commit()
+#     db.close()
+#     print("Medicines inserted successfully!")
+
+# if __name__ == "__main__":
+#     insert_medicines()

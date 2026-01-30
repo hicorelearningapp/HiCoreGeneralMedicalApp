@@ -186,6 +186,8 @@ class MedicineAPI:
 
     async def create_medicine(
         self,
+        MedicineCategoryId: int = Form(None),
+        MedicalTypeId: int = Form(None),
         Name: str = Form(...),
         GenericName: str = Form(None),
         DosageForm: str = Form(None),
@@ -194,13 +196,14 @@ class MedicineAPI:
         PrescriptionRequired: bool = Form(False),
         Size: str = Form(None),
         UnitPrice: float = Form(...),
-        TherapeuticClass: str = Form(None),
-        Categories: str = Form(None),
+        TherapeuticClass: str = Form(None),        
         ImgUrl: UploadFile = File(None)
     ):
         try:
             img_path = await save_picture(ImgUrl, "Medicine") if ImgUrl else None
             obj = MedicineCreate(
+                MedicineCategoryId=MedicineCategoryId,
+                MedicalTypeId=MedicalTypeId,
                 Name=Name,
                 GenericName=GenericName,
                 DosageForm=DosageForm,
@@ -210,7 +213,6 @@ class MedicineAPI:
                 Size=Size,
                 UnitPrice=UnitPrice,
                 TherapeuticClass=TherapeuticClass,
-                Categories=Categories,
                 ImgUrl=img_path
             )
             return await self.crud.create_medicine(obj)
@@ -226,6 +228,8 @@ class MedicineAPI:
     async def update_medicine(
         self,
         medicine_id: int,
+        MedicineCategoryId: int = Form(None),
+        MedicalTypeId: int = Form(None),
         Name: str = Form(None),
         GenericName: str = Form(None),
         DosageForm: str = Form(None),
@@ -235,7 +239,6 @@ class MedicineAPI:
         Size: str = Form(None),
         UnitPrice: float = Form(None),
         TherapeuticClass: str = Form(None),
-        Categories: str = Form(None),
         ImgUrl: UploadFile = File(None)
     ):
         try:
@@ -245,6 +248,8 @@ class MedicineAPI:
 
             update_data = {}
             for field_name, value in {
+                "MedicineCategoryId": MedicineCategoryId,
+                "MedicalTypeId": MedicalTypeId,
                 "Name": Name,
                 "GenericName": GenericName,
                 "DosageForm": DosageForm,
@@ -253,8 +258,7 @@ class MedicineAPI:
                 "PrescriptionRequired": PrescriptionRequired,
                 "Size": Size,
                 "UnitPrice": UnitPrice,
-                "TherapeuticClass": TherapeuticClass,
-                "Categories": Categories
+                "TherapeuticClass": TherapeuticClass
             }.items():
                 if value is not None:
                     update_data[field_name] = value

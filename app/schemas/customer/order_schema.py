@@ -6,12 +6,13 @@ from ...utils.timezone import ist_now
 
 # ----------------- OrderItem Schemas -----------------
 class OrderItemBase(BaseModel):
-    OrderId: Optional[int]
+    # OrderId: Optional[int]
     CustomerId: Optional[int]
-    RetailerId: Optional[int]
+    RetailerId: Optional[int]    
     MedicineId: int
+    MedicineName: str
     Quantity: int
-    GSTPercentage: float   
+    Price: float   
     TotalAmount: float  # (Price * Quantity) + GST, handled in manager
 
 
@@ -34,6 +35,7 @@ class OrderItemRead(OrderItemBase):
 class OrderBase(BaseModel):
     CustomerId: Optional[int]
     RetailerId: Optional[int]
+    RetailerName: str
     
     OrderDateTime: Optional[datetime] = Field(default_factory=ist_now)
     ExpectedDelivery: Optional[datetime] = Field(default_factory=ist_now)
@@ -45,23 +47,22 @@ class OrderBase(BaseModel):
 
     PaymentMode: Optional[str]
     PaymentStatus: Optional[str] = "Pending"
-    Amount: Optional[float] = 0.0
+    
     
     PrescriptionFileUrl: Optional[str]
     PrescriptionVerified: Optional[bool] = False
 
-    OrderStatus: Optional[str] = "Pending"
+    TotalAmount: Optional[float] = 0.0
+    Status: Optional[str] = "New"
 
     CreatedAt: Optional[datetime] = Field(default_factory=ist_now)
     UpdatedAt: Optional[datetime] = Field(default_factory=ist_now)
 
 
 class OrderCreate(OrderBase):
-    CustomerId: int
-    RetailerId: int
-    Amount: float
+    # pass
     # You can optionally include order items
-    # Items: Optional[List[OrderItemCreate]] = []
+    Items: Optional[List[OrderItemCreate]]
 
 
 class OrderUpdate(OrderBase):
@@ -70,7 +71,7 @@ class OrderUpdate(OrderBase):
 
 class OrderRead(OrderBase):
     OrderId: int
-    Items: Optional[List[OrderItemRead]] = []
+    # Items: Optional[List[OrderItemRead]]
 
     class Config:
         from_attributes = True

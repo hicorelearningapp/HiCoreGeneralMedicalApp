@@ -9,7 +9,8 @@ class Order(Base):
     OrderId = Column(Integer, primary_key=True, index=True)
     CustomerId = Column(Integer, nullable=False)
     RetailerId = Column(Integer, nullable=False)
-    
+    RetailerName = Column(String, nullable=False)
+
     OrderDateTime = Column(DateTime, default=ist_now)
     ExpectedDelivery = Column(DateTime, nullable=True)
 
@@ -21,15 +22,15 @@ class Order(Base):
 
     # Payment info
     PaymentMode = Column(String, nullable=True)
-    PaymentStatus = Column(String, default="Pending")  # Pending, Paid, Failed
-    Amount = Column(Float, default=0.0)  # Total order amount including GST
+    PaymentStatus = Column(String, default="Pending")  # Pending, Paid, Failed    
     
     # Prescription info
     PrescriptionFileUrl = Column(String, nullable=True)
     PrescriptionVerified = Column(Boolean, default=False)
 
-    # Order state
-    OrderStatus = Column(String, default="Pending")  # Pending, Cancelled, Completed
+ 
+    TotalAmount = Column(Float, default=0.0)  # Total order amount including GST
+    Status = Column(String, default="New")  # Pending, Cancelled, Completed
 
     # Audit fields
     CreatedAt = Column(DateTime, default=ist_now)
@@ -45,9 +46,9 @@ class OrderItem(Base):
     RetailerId = Column(Integer, nullable=False)
 
     MedicineId = Column(Integer, nullable=False)
-    
+    MedicineName = Column(String, nullable=False)
     Quantity = Column(Integer, nullable=False)
 
-    GSTPercentage = Column(Float, nullable=False)    
+    Price = Column(Float, nullable=False)    
 
     TotalAmount = Column(Float, nullable=False)      # (UnitPrice * Quantity) + GST

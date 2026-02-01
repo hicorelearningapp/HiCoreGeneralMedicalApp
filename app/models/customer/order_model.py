@@ -28,7 +28,7 @@ class Order(Base):
     PrescriptionFileUrl = Column(String, nullable=True)
     PrescriptionVerified = Column(Boolean, default=False)
 
- 
+    TotalItems = Column(Integer, nullable=True)
     TotalAmount = Column(Float, default=0.0)  # Total order amount including GST
     Status = Column(String, default="New")  # Pending, Cancelled, Completed
 

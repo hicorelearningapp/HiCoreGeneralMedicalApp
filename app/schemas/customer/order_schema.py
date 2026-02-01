@@ -52,6 +52,7 @@ class OrderBase(BaseModel):
     PrescriptionFileUrl: Optional[str]
     PrescriptionVerified: Optional[bool] = False
 
+    TotalItems: Optional[int]
     TotalAmount: Optional[float] = 0.0
     Status: Optional[str] = "New"
 

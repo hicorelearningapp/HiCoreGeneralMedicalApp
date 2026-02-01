@@ -40,6 +40,7 @@ class OrderManager:
             new_order = await self.db_manager.create(Order, order_data)
             order_id = new_order.OrderId
 
+            total_items = len(order.Items)
             total_amount = 0.0
 
             # ---- Create items ----
@@ -58,6 +59,7 @@ class OrderManager:
                 Order,
                 {"OrderId": order_id},
                 {
+                    "TotalItems": total_items,
                     "TotalAmount": total_amount,
                     "UpdatedAt": ist_now(),
                 },
@@ -147,46 +149,29 @@ class OrderManager:
             await self.db_manager.disconnect()
 
     # ------------------------------------------------------------
-    # 🟢 Get Orders by Retailer (SAME COUNTS + NewOrders)
+    # 🟢 Get Orders by Retailer 
     # ------------------------------------------------------------
     async def get_orders_by_retailer(self, retailer_id: Optional[int] = None) -> Dict[str, Any]:
         try:
             await self.db_manager.connect()
 
-            query = {"RetailerId": retailer_id} if retailer_id else None
-            result = await self.db_manager.read(Order, query)
+            return await self.db_manager.read(Order, {"RetailerId": retailer_id})
 
-            orders = [OrderRead.from_orm(o).dict() for o in result]
+        except Exception as e:
+            logger.error(f"❌ Error fetching retailer orders: {e}")
+            return {"success": False, "message": str(e)}
 
-            new_orders = [
-                await self.get_order(o.get("OrderId"))
-                for o in orders
-                if o.get("Status") == "New"
-            ]
+        finally:
+            await self.db_manager.disconnect()
 
-            total_orders = len(orders)
+    # ------------------------------------------------------------
+    # 🟢 Get Orders Items by Retailer 
+    # ------------------------------------------------------------
+    async def get_order_items_by_retailer(self, retailer_id: Optional[int] = None) -> Dict[str, Any]:
+        try:
+            await self.db_manager.connect()
 
-            delivered = sum(1 for o in orders if o.get("Status") == "Delivered")
-            cancelled = sum(1 for o in orders if o.get("Status") == "Cancelled")
-            in_transit = sum(1 for o in orders if o.get("Status") == "InTransit")
-            pending = sum(1 for o in orders if o.get("Status") == "Pending")
-            new = sum(1 for o in orders if o.get("Status") == "New")
-            accepted = sum(
-                1 for o in orders
-                if o.get("Status") not in ("New", "Cancelled")
-            )
-
-            return {
-                "TotalOrders": total_orders,
-                "New": new,
-                "Accepted": accepted,
-                "Pending": pending,
-                "InTransit": in_transit,
-                "Delivered": delivered,
-                "Cancelled": cancelled,
-                "NewOrders": new_orders,
-                "AllOrders": orders
-            }
+            return await self.db_manager.read(OrderItem, {"RetailerId": retailer_id})
 
         except Exception as e:
             logger.error(f"❌ Error fetching retailer orders: {e}")
@@ -423,3 +408,55 @@ class OrderItemManager:
 
         finally:
             await self.db_manager.disconnect()
+
+
+    # # ------------------------------------------------------------
+    # # 🟢 Get Orders by Retailer (SAME COUNTS + NewOrders)
+    # # ------------------------------------------------------------
+    # async def get_orders_by_retailer(self, retailer_id: Optional[int] = None) -> Dict[str, Any]:
+    #     try:
+    #         await self.db_manager.connect()
+
+    #         query = {"RetailerId": retailer_id} if retailer_id else None
+    #         result = await self.db_manager.read(Order, query)
+
+    #         orders = [OrderRead.from_orm(o).dict() for o in result]
+
+    #         new_orders = [
+    #             await self.get_order(o.get("OrderId"))
+    #             for o in orders
+    #             if o.get("Status") == "New"
+    #         ]
+
+    #         total_orders = len(orders)
+
+    #         delivered = sum(1 for o in orders if o.get("Status") == "Delivered")
+    #         cancelled = sum(1 for o in orders if o.get("Status") == "Cancelled")
+    #         in_transit = sum(1 for o in orders if o.get("Status") == "InTransit")
+    #         pending = sum(1 for o in orders if o.get("Status") == "Pending")
+    #         new = sum(1 for o in orders if o.get("Status") == "New")
+    #         accepted = sum(
+    #             1 for o in orders
+    #             if o.get("Status") not in ("New", "Cancelled")
+    #         )
+
+    #         return {
+    #             "TotalOrders": total_orders,
+    #             "New": new,
+    #             "Accepted": accepted,
+    #             "Pending": pending,
+    #             "InTransit": in_transit,
+    #             "Delivered": delivered,
+    #             "Cancelled": cancelled,
+    #             "NewOrders": new_orders,
+    #             "AllOrders": orders
+    #         }
+
+    #     except Exception as e:
+    #         logger.error(f"❌ Error fetching retailer orders: {e}")
+    #         return {"success": False, "message": str(e)}
+
+    #     finally:
+    #         await self.db_manager.disconnect()
+
+    

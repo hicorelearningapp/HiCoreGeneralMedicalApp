@@ -189,7 +189,7 @@ class TableCreator:
             PrescriptionFileUrl TEXT,
             PrescriptionVerified BOOLEAN DEFAULT 0,
             
-            
+            TotalItems INTEGER,
             TotalAmount REAL DEFAULT 0,  -- total including GST
             Status TEXT DEFAULT 'New',
             

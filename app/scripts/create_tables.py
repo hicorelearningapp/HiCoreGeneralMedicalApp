@@ -168,6 +168,7 @@ class TableCreator:
         CREATE TABLE IF NOT EXISTS Orders (
             OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
             CustomerId INTEGER NOT NULL,
+            CustomerName TEXT NOT NULL,
             RetailerId INTEGER NOT NULL,
             RetailerName TEXT NOT NULL,
 
@@ -603,7 +604,7 @@ class TableCreator:
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("OrderItem")
+        # self.remove_table_if_exists("Orders")
 
 
         # tables = [

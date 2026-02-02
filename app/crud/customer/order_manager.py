@@ -81,7 +81,7 @@ class OrderManager:
             await self.db_manager.disconnect()
 
     # ------------------------------------------------------------
-    # 🟡 Get Order + Items (SAME OUTPUT)
+    # 🟡 Get Order + Items (Filtered Customer Fields)
     # ------------------------------------------------------------
     async def get_order(self, order_id: int) -> dict:
         try:
@@ -97,11 +97,41 @@ class OrderManager:
                 OrderItem, {"OrderId": order_id}
             )
 
+            # Convert order to schema
             order_schema = OrderRead.from_orm(order).dict()
-            order_schema["Customer"] = await self.db_manager.read(
+
+            # ----------------------------
+            # Fetch customer
+            # ----------------------------
+            customers = await self.db_manager.read(
                 Customer, {"CustomerId": order.CustomerId}
             )
-            order_schema["Items"] = [item.__dict__ for item in items]
+
+            if customers:
+                customer = customers[0]
+                order_schema["Customer"] = {
+                    "Name": customer.FullName,
+                    "Gender": customer.Gender,
+                    "AddressLine1": customer.AddressLine1,
+                    "AddressLine2": customer.AddressLine2,
+                    "City": customer.City,
+                    "State": customer.State,
+                    "Country": customer.Country,
+                    "PostalCode": customer.PostalCode,
+                    "Latitude": customer.Latitude,
+                    "Longitude": customer.Longitude,
+                    "PhoneNumber": customer.PhoneNumber,
+                    "Email": customer.Email
+                }
+            else:
+                order_schema["Customer"] = None
+
+            # ----------------------------
+            # Items
+            # ----------------------------
+            order_schema["Items"] = [
+                item.__dict__ for item in items
+            ]
 
             return order_schema
 
@@ -111,6 +141,7 @@ class OrderManager:
 
         finally:
             await self.db_manager.disconnect()
+
 
     # ------------------------------------------------------------
     # 🟢 Get Orders by Customer (SAME COUNTS)

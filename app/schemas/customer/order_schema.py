@@ -34,6 +34,7 @@ class OrderItemRead(OrderItemBase):
 # ----------------- Order Schemas -----------------
 class OrderBase(BaseModel):
     CustomerId: Optional[int]
+    CustomerName: str
     RetailerId: Optional[int]
     RetailerName: str
     

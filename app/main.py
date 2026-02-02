@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 # Customer
 from .api.customer.customer_api import CustomerAPI
+from .api.customer.customer_dashboard_api import CustomerDashboardAPI
 from .api.customer.medicine_api import MedicineAPI, MedicineCategoryAPI, MedicineInfoAPI, MedicalTypeAPI
 from .api.customer.cart_api import CartAPI
 from .api.customer.order_api import OrderAPI, OrderItemAPI
@@ -29,6 +30,7 @@ app.mount("/Images", StaticFiles(directory="Images"), name="Images")
 
 # Customer
 customer_api = CustomerAPI()
+customer_dashboard_api = CustomerDashboardAPI()
 customer_notification_api = CustomerNotificationAPI()
 medical_type_api = MedicalTypeAPI()
 medicine_category_api = MedicineCategoryAPI()
@@ -56,6 +58,7 @@ app.include_router(order_api.router, tags=["Orders"])
 app.include_router(order_item_api.router, tags=["Order Items"])
 app.include_router(prescription.router, tags=["Prescription"])
 app.include_router(customer_api.router, tags=["Customer"])
+app.include_router(customer_dashboard_api.router, tags=["Customer Dashboard"])
 # app.include_router(customer_notification_api.router, tags=["Customer Notifications"])
 app.include_router(lab_api.router, tags=["Lap"])
 # app.include_router(test_api.router, tags=["Test"])

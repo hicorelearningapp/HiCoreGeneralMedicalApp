@@ -8,6 +8,7 @@ class Order(Base):
 
     OrderId = Column(Integer, primary_key=True, index=True)
     CustomerId = Column(Integer, nullable=False)
+    CustomerName = Column(String, nullable=False)
     RetailerId = Column(Integer, nullable=False)
     RetailerName = Column(String, nullable=False)
 

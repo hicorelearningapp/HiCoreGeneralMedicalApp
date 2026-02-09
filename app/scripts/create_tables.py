@@ -25,16 +25,16 @@ class TableCreator:
             ProfilePicture TEXT,
             DateOfBirth DATE,
             Gender TEXT,
-            Email TEXT NOT NULL UNIQUE,
-            PasswordHash TEXT NOT NULL,
+            Email TEXT UNIQUE,
+            PasswordHash TEXT,
             PhoneNumber TEXT,
 
-            AddressLine1 TEXT NOT NULL,
+            AddressLine1 TEXT,
             AddressLine2 TEXT,
-            City TEXT NOT NULL,
-            State TEXT NOT NULL,
-            Country TEXT NOT NULL,
-            PostalCode TEXT NOT NULL,
+            City TEXT,
+            State TEXT,
+            Country TEXT,
+            PostalCode TEXT,
             Latitude REAL,
             Longitude REAL,
 
@@ -399,7 +399,8 @@ class TableCreator:
     def create_retailer_table(self):
         sql = """
         CREATE TABLE IF NOT EXISTS Retailer (
-            RetailerId INTEGER PRIMARY KEY AUTOINCREMENT,
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            RetailerId INTEGER,
             ShopName TEXT,
             OwnerName TEXT,
             GSTNumber TEXT,
@@ -407,19 +408,20 @@ class TableCreator:
             PhoneNumber TEXT,
             Email TEXT,
             PasswordHash TEXT,
-            AddressLine1 TEXT NOT NULL,
+            AddressLine1 TEXT,
             AddressLine2 TEXT,
-            City TEXT NOT NULL,
-            State TEXT NOT NULL,
-            Country TEXT NOT NULL,
-            PostalCode TEXT NOT NULL,
+            City TEXT,
+            State TEXT,
+            Country TEXT,
+            PostalCode TEXT,
             Latitude REAL,
             Longitude REAL,
             ShopPic TEXT,
             BankName TEXT,
             AccountNumber TEXT,
             IFSCCode TEXT,
-            Branch TEXT
+            Branch TEXT,
+            IsRegistered BOOLEAN
         );
         """
         self._execute(sql, "Retailer")
@@ -577,7 +579,7 @@ class TableCreator:
     # ------------------------------------------------------------------
     def create_all_tables(self):
         # Customer tables
-        # self.create_customer_table()
+        self.create_customer_table()
         # self.create_medicine_type_table()
         # self.create_medicine_category_table()
         # self.create_medicine_table()
@@ -589,8 +591,8 @@ class TableCreator:
         # self.create_cart_item_table()
         # self.create_prescription_table()
 
-        self.create_order_table()
-        self.create_order_item_table()
+        # self.create_order_table()
+        # self.create_order_item_table()
                 
         # # self.create_lab_table()
         # # self.create_test_table()
@@ -599,12 +601,12 @@ class TableCreator:
         # # self.create_doctor_table()
         # # self.create_doctor_appointment_table()
 
-        # self.create_retailer_table()
+        self.create_retailer_table()
 
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("Orders")
+        # self.remove_table_if_exists("Customer")
 
 
         # tables = [

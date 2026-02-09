@@ -5,7 +5,9 @@ from ...config import settings
 from ...schemas.customer.customer_schema import (
     CustomerCreate,
     CustomerUpdate,
-    CustomerRead
+    CustomerRead,
+    RegisterSchema,
+    LoginSchema
 )
 from ...crud.customer.customer_manager import CustomerManager
 from ...utils.image_uploader import save_picture
@@ -19,6 +21,8 @@ class CustomerAPI:
         self.register_routes()
 
     def register_routes(self):
+        self.router.post("/customers/register", response_model=dict)(self.register)
+        self.router.post("/customers/login", response_model=dict)(self.login)
         self.router.post("/customers", response_model=dict)(self.create_customer)
         self.router.get("/customers/{customer_id}", response_model=dict)(self.get_customer)
         self.router.get("/customers", response_model=dict)(self.get_all_customers)
@@ -35,18 +39,18 @@ class CustomerAPI:
     async def create_customer(
         self,
         FullName: str = Form(None),
-        Email: str = Form(...),
-        Password: str = Form(...),
+        Email: str = Form(None),
+        Password: str = Form(None),
         PhoneNumber: str = Form(None),
         ProfilePicture: UploadFile = File(None),
         DateOfBirth: str = Form(None),
         Gender: str = Form(None),
-        AddressLine1: str = Form(...),
+        AddressLine1: str = Form(None),
         AddressLine2: str = Form(None),
-        City: str = Form(...),
-        State: str = Form(...),
-        Country: str = Form(...),
-        PostalCode: str = Form(...),
+        City: str = Form(None),
+        State: str = Form(None),
+        Country: str = Form(None),
+        PostalCode: str = Form(None),
         Latitude: float = Form(None),
         Longitude: float = Form(None),
         BankName: str = Form(None),
@@ -107,12 +111,12 @@ class CustomerAPI:
         PhoneNumber: str = Form(None),
         DateOfBirth: str = Form(None),
         Gender: str = Form(None),
-        AddressLine1: str = Form(...),
+        AddressLine1: str = Form(None),
         AddressLine2: str = Form(None),
-        City: str = Form(...),
-        State: str = Form(...),
-        Country: str = Form(...),
-        PostalCode: str = Form(...),
+        City: str = Form(None),
+        State: str = Form(None),
+        Country: str = Form(None),
+        PostalCode: str = Form(None),
         Latitude: float = Form(None),
         Longitude: float = Form(None),
         BankName: str = Form(None),
@@ -151,11 +155,8 @@ class CustomerAPI:
                 "Branch": Branch,
             }.items():
                 if value is not None:
-                    # Rename Password to PasswordHash for DB
-                    if field_name == "Password":
-                        update_data["PasswordHash"] = value
-                    else:
-                        update_data[field_name] = value
+                    update_data[field_name] = value
+                        
 
             # Handle profile picture
             if ProfilePicture:
@@ -209,6 +210,18 @@ class CustomerAPI:
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+    async def register(self, payload: RegisterSchema):
+        result = await self.crud.register(payload.Email, payload.Password)
+        if not result["success"]:
+            raise HTTPException(status_code=400, detail=result["message"])
+        return result
+    
+    async def login(self, payload: LoginSchema):
+        result = await self.crud.login(payload.Email, payload.Password)
+        if not result["success"]:
+            raise HTTPException(status_code=401, detail=result["message"])
+        return result
 
 
 

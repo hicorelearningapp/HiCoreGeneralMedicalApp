@@ -20,8 +20,16 @@ class RetailerManager:
         try:
             await self.db_manager.connect()
             data = retailer.dict()
-            data["PasswordHash"] = hash_password(data.pop("Password"))
-            obj = await self.db_manager.create(Retailer, data)
+            if "Password" in data:
+                data["PasswordHash"] = hash_password(data.pop("Password"))
+            existing = await self.db_manager.read(Retailer, {"Email": data["Email"]})
+            if not existing:
+                obj = await self.db_manager.create(Retailer, data)
+            else:
+                return {
+                "success": False,
+                "message": "Email Id Already Exists"
+            }
             logger.info(f"Created retailer {obj.RetailerId}")
             return {
                 "success": True,
@@ -115,3 +123,91 @@ class RetailerManager:
             return {"success": False, "message": f"Error deleting retailer: {e}"}
         finally:
             await self.db_manager.disconnect()
+
+    
+    # ---------------- REGISTER ----------------
+    async def register(self, email: str, password: str) -> dict:
+        await self.db_manager.connect()
+        try:
+            # Check if email already exists
+            existing = await self.db_manager.read(Retailer, {"Email": email})
+            if existing:
+                return {"success": False, "message": "Email already registered"}
+
+            retailer = await self.db_manager.create(
+                Retailer,
+                {
+                    "Email": email,
+                    "PasswordHash": hash_password(password),
+                },
+            )
+
+            return {
+                "success": True,
+                "message": "Registered successfully",
+                "data": {"RetailerId": retailer.RetailerId, "Email": retailer.Email},
+            }
+
+        except Exception as e:
+            logger.error(f"Error registering retailer: {e}")
+            return {"success": False, "message": f"Error registering retailer: {e}"}
+        finally:
+            await self.db_manager.disconnect()
+
+    # ---------------- LOGIN ----------------
+    async def login(self, email: str, password: str) -> dict:
+        await self.db_manager.connect()
+        try:
+            result = await self.db_manager.read(Retailer, {"Email": email})
+            if not result:
+                return {"success": False, "message": "Invalid credentials"}
+
+            retailer = result[0]
+            if retailer.PasswordHash != hash_password(password):
+                return {"success": False, "message": "Invalid credentials"}
+
+            return {
+                "success": True,
+                "message": "Login successful",
+                "data": {"RetailerId": retailer.RetailerId, "Email": retailer.Email},
+            }
+
+        except Exception as e:
+            logger.error(f"Error logging in retailer: {e}")
+            return {"success": False, "message": f"Error logging in retailer: {e}"}
+        finally:
+            await self.db_manager.disconnect()
+
+    async def sync_create(self, data: dict):
+        await self.db_manager.connect()
+        try:
+            existing = await self.db_manager.read(Retailer, {"Email": data["Email"]})
+            if not existing:
+                await self.db_manager.create(Retailer, data)
+        finally:
+            await self.db_manager.disconnect()
+
+
+    async def sync_update(self, data: dict):
+        await self.db_manager.connect()
+        try:
+            retailer_id = data.pop("RetailerId")
+            await self.db_manager.update(
+                Retailer,
+                {"RetailerId": retailer_id},
+                data
+            )
+        finally:
+            await self.db_manager.disconnect()
+
+
+    async def sync_delete(self, data: dict):
+        await self.db_manager.connect()
+        try:
+            await self.db_manager.delete(
+                Retailer,
+                {"RetailerId": data["RetailerId"]}
+            )
+        finally:
+            await self.db_manager.disconnect()
+

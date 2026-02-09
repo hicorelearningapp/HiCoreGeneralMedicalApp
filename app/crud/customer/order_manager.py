@@ -186,7 +186,11 @@ class OrderManager:
         try:
             await self.db_manager.connect()
 
-            return await self.db_manager.read(Order, {"RetailerId": retailer_id})
+            orders = await self.db_manager.read(Order, {"RetailerId": retailer_id})
+
+            all_orders = [await self.get_order(o.OrderId) for o in orders]
+            
+            return all_orders
 
         except Exception as e:
             logger.error(f"❌ Error fetching retailer orders: {e}")

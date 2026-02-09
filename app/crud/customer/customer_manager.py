@@ -7,9 +7,13 @@ from ...schemas.customer.customer_schema import (
     CustomerUpdate,
     CustomerRead
 )
+import hashlib
 
 logger = get_logger(__name__)
 
+def hash_password(password: str) -> str:
+    """Simple SHA256 hash. Replace with your secure hashing method."""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 class CustomerManager:
     def __init__(self, db_type: str):
@@ -24,7 +28,12 @@ class CustomerManager:
             plain_password = data.pop("Password", None)
 
             # Your password hashing function should go here
-            data["PasswordHash"] = plain_password  # Replace later
+            data["PasswordHash"] = hash_password(plain_password)  # Replace later
+
+            existing = await self.db_manager.read(Customer, {"Email": data["Email"]})
+            if existing:
+                await self.db_manager.disconnect()
+                return {"success": False, "message": "Email already registered"}
 
             obj = await self.db_manager.create(Customer, data)
             logger.info(f"Created customer {obj.CustomerId}")
@@ -83,9 +92,11 @@ class CustomerManager:
 
             update_data = data.dict(exclude_unset=True)
 
-            # If Password is present -> rename to PasswordHash
+            # 🔐 Hash ONLY if password is provided
             if "Password" in update_data:
-                update_data["PasswordHash"] = update_data.pop("Password")
+                password = update_data.pop("Password")
+                if password:
+                    update_data["PasswordHash"] = hash_password(password)
 
             rowcount = await self.db_manager.update(
                 Customer,
@@ -94,7 +105,6 @@ class CustomerManager:
             )
 
             if rowcount:
-                logger.info(f"Updated customer {customer_id}")
                 return {
                     "success": True,
                     "message": "Customer updated successfully",
@@ -110,8 +120,10 @@ class CustomerManager:
         except Exception as e:
             logger.error(f"Error updating customer {customer_id}: {e}")
             return {"success": False, "message": f"Error updating customer: {e}"}
+
         finally:
             await self.db_manager.disconnect()
+
 
     async def delete_customer(self, customer_id: int) -> dict:
         try:
@@ -137,6 +149,50 @@ class CustomerManager:
             return {"success": False, "message": f"Error deleting customer: {e}"}
         finally:
             await self.db_manager.disconnect()
+
+
+    async def register(self, email: str, password: str):
+        await self.db_manager.connect()
+
+        existing = await self.db_manager.read(Customer, {"Email": email})
+        if existing:
+            await self.db_manager.disconnect()
+            return {"success": False, "message": "Email already registered"}
+
+        customer = await self.db_manager.create(
+            Customer,
+            {
+                "Email": email,
+                "PasswordHash": hash_password(password),
+            },
+        )
+
+        await self.db_manager.disconnect()
+        return {
+            "success": True,
+            "message": "Registered successfully",
+            "data": {"CustomerId": customer.CustomerId, "Email": customer.Email},
+        }
+
+    async def login(self, email: str, password: str):
+        await self.db_manager.connect()
+
+        result = await self.db_manager.read(Customer, {"Email": email})
+        if not result:
+            await self.db_manager.disconnect()
+            return {"success": False, "message": "Invalid credentials"}
+
+        customer = result[0]
+
+        if customer.PasswordHash != hash_password(password):
+                return {"success": False, "message": "Invalid credentials"}
+
+        await self.db_manager.disconnect()
+        return {
+            "success": True,
+            "message": "Login successful",
+            "data": {"CustomerId": customer.CustomerId, "Email": customer.Email},
+        }
 
 
 

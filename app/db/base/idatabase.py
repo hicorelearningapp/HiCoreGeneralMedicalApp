@@ -47,3 +47,6 @@ class IDatabase(ABC):
         For SQL DBs, run raw SQL. For Mongo, you may raise NotImplementedError or support aggregation.
         """
         pass
+# python_venv
+# venv/Scripts/activate
+# pip install -r requirements.txt

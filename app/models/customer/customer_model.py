@@ -1,6 +1,7 @@
 from sqlalchemy import (
-    Column, Integer, String, Boolean, Date, Float, UniqueConstraint
+    Column, Integer, String, Boolean, Date, Float, UniqueConstraint, ForeignKey
 )
+from sqlalchemy.orm import relationship
 from .sql_base import Base
 
 
@@ -12,16 +13,16 @@ class Customer(Base):
 
     CustomerId = Column(Integer, primary_key=True, index=True)
 
-    FullName = Column(String(255), nullable=True)
-    ProfilePicture = Column(String(255), nullable=True)
+    CustomerName = Column(String(255), nullable=False)
+    ProfilePicture = Column(String(500), nullable=True)
 
     DateOfBirth = Column(Date, nullable=True)
-    Gender = Column(String(50), nullable=True)
+    Gender = Column(String(20), nullable=True)
 
-    Email = Column(String(255), nullable=True, unique=True)
+    Email = Column(String(255), nullable=False, unique=True)
     PasswordHash = Column(String(255), nullable=True)
 
-    PhoneNumber = Column(String(20), nullable=True)
+    CustomerPhoneNumber = Column(String(20), nullable=True)
 
     AddressLine1 = Column(String(255), nullable=True)
     AddressLine2 = Column(String(255), nullable=True)
@@ -37,4 +38,11 @@ class Customer(Base):
     AccountNumber = Column(String(50), nullable=True)
     IFSCCode = Column(String(50), nullable=True)
     Branch = Column(String(255), nullable=True)
+
+    # Relationships
+    # One Customer → Many Service Requests
+    service_requests = relationship(
+        "ServiceRequest",
+        foreign_keys="ServiceRequest.CustomerId"
+    )
 

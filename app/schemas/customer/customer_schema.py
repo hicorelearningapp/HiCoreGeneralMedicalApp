@@ -4,12 +4,12 @@ from datetime import date
 
 
 class CustomerBase(BaseModel):
-    FullName: Optional[str] = None
+    CustomerName: Optional[str] = None
     ProfilePicture: Optional[str] = None
     DateOfBirth: Optional[date] = None
     Gender: Optional[str] = None
     Email: Optional[str] = None
-    PhoneNumber: Optional[str] = None
+    CustomerPhoneNumber: Optional[str] = None
     AddressLine1: Optional[str] = None
     AddressLine2: Optional[str] = None
     City: Optional[str] = None

@@ -21,13 +21,13 @@ class TableCreator:
         sql = """
         CREATE TABLE IF NOT EXISTS Customer (
             CustomerId INTEGER PRIMARY KEY AUTOINCREMENT,
-            FullName TEXT,
+            CustomerName TEXT,
             ProfilePicture TEXT,
             DateOfBirth DATE,
             Gender TEXT,
             Email TEXT UNIQUE,
             PasswordHash TEXT,
-            PhoneNumber TEXT,
+            CustomerPhoneNumber TEXT,
 
             AddressLine1 TEXT,
             AddressLine2 TEXT,
@@ -427,6 +427,111 @@ class TableCreator:
         self._execute(sql, "Retailer")
 
 
+    # ------------------------------------------------------------------
+    # Service Provider Table
+    # ------------------------------------------------------------------
+    def create_service_provider_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS ServiceProvider (
+            ServiceProviderId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ServiceId TEXT UNIQUE NOT NULL,
+            ServiceName TEXT NOT NULL,
+            ProviderName TEXT NOT NULL,
+            PhotoUrl TEXT,
+            CertificateUrl TEXT,
+            AadhaarOrIdProofUrl TEXT,
+            Address TEXT NOT NULL,
+            WorkLocation TEXT NOT NULL,
+            State TEXT NOT NULL,
+            Pincode TEXT NOT NULL,
+            PhoneNumber TEXT NOT NULL,
+            Email TEXT NOT NULL,
+            ExperienceYears INTEGER NOT NULL,
+            Gender TEXT NOT NULL,
+            DateOfBirth TEXT NOT NULL,
+            LicenseNumber TEXT,
+            AvailabilityStatus TEXT DEFAULT 'available',
+            Rating REAL DEFAULT 0.0,
+            IsVerified BOOLEAN DEFAULT 0,
+            IsActive BOOLEAN DEFAULT 1,
+            Specialization TEXT NOT NULL,
+            ServiceDescription TEXT NOT NULL,
+            ServiceCategory TEXT NOT NULL,
+            ProfileCompleted BOOLEAN DEFAULT 0,
+            CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+        self._execute(sql, "ServiceProvider")
+
+    # ------------------------------------------------------------------
+    # Service Request Table
+    # ------------------------------------------------------------------
+    def create_service_request_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS ServiceRequest (
+            RequestId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CustomerId INTEGER NOT NULL,
+            ServiceProviderId INTEGER,
+            ServiceId TEXT,
+            ServiceName TEXT,
+            CustomerName TEXT NOT NULL,
+            CustomerPhone TEXT NOT NULL,
+            CustomerAddress TEXT NOT NULL,
+            PreferredDate DATE,
+            PreferredTime TEXT,
+            RequestDescription TEXT,
+            WorkLocation TEXT,
+            Status TEXT DEFAULT 'pending',
+            AssignedAt DATETIME,
+            AcceptedAt DATETIME,
+            CompletedAt DATETIME,
+            CancelledAt DATETIME,
+            CustomerNotes TEXT,
+            ProviderNotes TEXT,
+            EstimatedPrice REAL,
+            FinalPrice REAL,
+            PaymentStatus TEXT DEFAULT 'pending',
+            AssignmentMode TEXT DEFAULT 'random',
+            NotificationPreference TEXT DEFAULT 'both',
+            CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId),
+            FOREIGN KEY (ServiceProviderId) REFERENCES ServiceProvider(ServiceProviderId)
+        );
+        """
+        self._execute(sql, "ServiceRequest")
+
+
+    # ------------------------------------------------------------------
+    # Notification Preference Table
+    # ------------------------------------------------------------------
+    def create_notification_preference_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS NotificationPreference (
+            PreferenceId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CustomerId INTEGER NOT NULL UNIQUE,
+            EnableWhatsApp BOOLEAN DEFAULT 1,
+            EnableSMS BOOLEAN DEFAULT 1,
+            EnableEmail BOOLEAN DEFAULT 0,
+            EnablePushNotification BOOLEAN DEFAULT 1,
+            DefaultChannel TEXT DEFAULT 'both',
+            NotifyOnRequestCreated BOOLEAN DEFAULT 1,
+            NotifyOnProviderAssigned BOOLEAN DEFAULT 1,
+            NotifyOnRequestAccepted BOOLEAN DEFAULT 1,
+            NotifyOnRequestCompleted BOOLEAN DEFAULT 1,
+            NotifyOnRequestCancelled BOOLEAN DEFAULT 1,
+            NotifyOnPromotions BOOLEAN DEFAULT 0,
+            NotifyOnNewServices BOOLEAN DEFAULT 0,
+            QuietHoursStart TEXT,
+            QuietHoursEnd TEXT,
+            EnableQuietHours BOOLEAN DEFAULT 0,
+            FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId)
+        );
+        """
+        self._execute(sql, "NotificationPreference")
+
+
 
 
     def add_column_if_not_exists(self, table: str, column: str, datatype: str):
@@ -602,7 +707,11 @@ class TableCreator:
         # # self.create_doctor_appointment_table()
 
         self.create_retailer_table()
+        self.create_service_provider_table()
+        self.create_service_request_table()
+        self.create_notification_preference_table()
 
+        
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")

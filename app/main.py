@@ -2,17 +2,19 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 # Customer
-from .api.customer.customer_api import CustomerAPI
-from .api.customer.customer_dashboard_api import CustomerDashboardAPI
-from .api.customer.medicine_api import MedicineAPI, MedicineCategoryAPI, MedicineInfoAPI, MedicalTypeAPI
-from .api.customer.cart_api import CartAPI
-from .api.customer.order_api import OrderAPI, OrderItemAPI
-from .api.customer.prescription_api import PrescriptionAPI
-from .api.customer.customer_notification_api import CustomerNotificationAPI
-from .api.customer.lap_api import LabAPI, TestAPI, AppointmentAPI
-from .api.customer.doctor_api import DoctorAPI, DoctorAppointmentAPI
-from .api.customer.retailer_api import RetailerAPI
-
+from app.api.customer.customer_api import CustomerAPI
+from app.api.customer.customer_dashboard_api import CustomerDashboardAPI
+from app.api.customer.medicine_api import MedicineAPI, MedicineCategoryAPI, MedicineInfoAPI, MedicalTypeAPI
+from app.api.customer.cart_api import CartAPI
+from app.api.customer.order_api import OrderAPI, OrderItemAPI
+from app.api.customer.prescription_api import PrescriptionAPI
+from app.api.customer.customer_notification_api import CustomerNotificationAPI
+from app.api.customer.lap_api import LabAPI, TestAPI, AppointmentAPI
+from app.api.customer.doctor_api import DoctorAPI, DoctorAppointmentAPI
+from app.api.customer.retailer_api import RetailerAPI
+from app.api.customer.service_provider_api import ServiceProviderAPI
+from app.api.customer.service_provider_dashboard_api import ServiceProviderDashboardAPI
+from app.api.customer.service_request_api import ServiceRequestAPI
 
 
 app = FastAPI(title="Medical App API list")
@@ -46,6 +48,10 @@ appointment_api = AppointmentAPI()
 doctor_api = DoctorAPI()
 doctor_appointment_api = DoctorAppointmentAPI()
 retailer_api = RetailerAPI()
+service_provider_api = ServiceProviderAPI()
+service_provider_dashboard_api = ServiceProviderDashboardAPI()
+service_request_api = ServiceRequestAPI()
+
 
 
 # Customer
@@ -66,6 +72,9 @@ app.include_router(lab_api.router, tags=["Lap"])
 app.include_router(doctor_api.router, tags=["Doctor"])
 # app.include_router(doctor_appointment_api.router, tags=["Doctor Appoinment"])
 app.include_router(retailer_api.router, tags=["Retailer"])
+app.include_router(service_provider_api.router, tags=["Service Provider"])
+app.include_router(service_provider_dashboard_api.router, tags=["Service Provider Dashboard"])
+app.include_router(service_request_api.router, tags=["Service Request"])
 
 
 

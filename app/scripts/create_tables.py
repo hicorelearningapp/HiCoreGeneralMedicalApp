@@ -390,6 +390,16 @@ class TableCreator:
         """
         self._execute(sql, "DoctorAppointment")
 
+    def create_doctor_service_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS DoctorService (
+            DoctorServiceId INTEGER PRIMARY KEY AUTOINCREMENT,
+            Service TEXT NOT NULL,
+            Amount REAL NOT NULL
+        );
+        """
+        self._execute(sql, "DoctorService")
+
 
 
     # Retailer Tables
@@ -684,7 +694,7 @@ class TableCreator:
     # ------------------------------------------------------------------
     def create_all_tables(self):
         # Customer tables
-        self.create_customer_table()
+        # self.create_customer_table()
         # self.create_medicine_type_table()
         # self.create_medicine_category_table()
         # self.create_medicine_table()
@@ -705,11 +715,12 @@ class TableCreator:
 
         # # self.create_doctor_table()
         # # self.create_doctor_appointment_table()
+        self.create_doctor_service_table()
 
         # self.create_retailer_table()
-        self.create_service_provider_table()
-        self.create_service_request_table()
-        self.create_notification_preference_table()
+        # self.create_service_provider_table()
+        # self.create_service_request_table()
+        # self.create_notification_preference_table()
 
         
 

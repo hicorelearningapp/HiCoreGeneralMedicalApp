@@ -346,7 +346,7 @@ class ServiceRequestManager:
                     await service_request_notifications.notify_provider_accepted(
                         phone_number=request.CustomerPhone,
                         request_id=request_id,
-                        provider_name=provider.ProviderName if 'provider' in locals() else "Provider",
+                        provider_name=request.ProviderName if 'provider' in locals() else "Provider",
                         preference=request.NotificationPreference
                     )
                     logger.info(f"Notification triggered for provider accepted on request #{request_id}")

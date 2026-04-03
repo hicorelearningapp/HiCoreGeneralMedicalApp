@@ -706,7 +706,7 @@ class TableCreator:
         # # self.create_doctor_table()
         # # self.create_doctor_appointment_table()
 
-        self.create_retailer_table()
+        # self.create_retailer_table()
         self.create_service_provider_table()
         self.create_service_request_table()
         self.create_notification_preference_table()

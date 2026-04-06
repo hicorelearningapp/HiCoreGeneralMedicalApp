@@ -8,8 +8,6 @@ from pydantic import BaseModel, Field
 # Service Provider Schemas
 # -------------------------
 class ServiceProviderBase(BaseModel):
-    ServiceId: Optional[str] = None
-    ServiceName: Optional[str] = None
     ProviderName: Optional[str] = None
 
     PhotoUrl: Optional[str] = None
@@ -17,8 +15,6 @@ class ServiceProviderBase(BaseModel):
     AadhaarOrIdProofUrl: Optional[str] = None
 
     Address: str
-    WorkLocation: str
-    State: str
     Pincode: str
 
     PhoneNumber: str
@@ -37,6 +33,7 @@ class ServiceProviderBase(BaseModel):
     Specialization: str
     ServiceDescription: str
     ServiceCategory: str
+    ServicesOffered: Optional[str] = None
 
     ProfileCompleted: Optional[bool] = False
 
@@ -45,8 +42,6 @@ class ServiceProviderBase(BaseModel):
 
 
 class ServiceProviderCreate(ServiceProviderBase):
-    ServiceId: str
-    ServiceName: str
     ProviderName: str
 
 

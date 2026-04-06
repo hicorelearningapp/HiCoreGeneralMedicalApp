@@ -10,17 +10,16 @@ from pydantic import BaseModel, Field
 class ServiceRequestBase(BaseModel):
     CustomerId: int
     ServiceProviderId: Optional[int] = None
-    ServiceId: Optional[str] = None
     ServiceName: Optional[str] = None
 
     CustomerName: str
     CustomerPhone: str
     CustomerAddress: str
+    Pincode: Optional[str] = None
 
     PreferredDate: Optional[date] = None
     PreferredTime: Optional[str] = None
     RequestDescription: Optional[str] = None
-    WorkLocation: Optional[str] = None
 
     Status: Literal["pending", "assigned", "accepted", "in_progress", "completed", "cancelled", "rejected"] = "pending"
 
@@ -31,6 +30,8 @@ class ServiceRequestBase(BaseModel):
 
     CustomerNotes: Optional[str] = None
     ProviderNotes: Optional[str] = None
+    RequestedServices: Optional[str] = None
+    Pincode: Optional[str] = None
 
     EstimatedPrice: Optional[float] = None
     FinalPrice: Optional[float] = None
@@ -57,6 +58,7 @@ class ServiceRequestUpdate(BaseModel):
     CancelledAt: Optional[datetime] = None
     CustomerNotes: Optional[str] = None
     ProviderNotes: Optional[str] = None
+    Pincode: Optional[str] = None
     EstimatedPrice: Optional[float] = None
     FinalPrice: Optional[float] = None
     PaymentStatus: Optional[Literal["pending", "paid", "failed"]] = None

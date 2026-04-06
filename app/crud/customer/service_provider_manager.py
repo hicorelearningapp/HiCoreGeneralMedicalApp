@@ -1,4 +1,5 @@
 from typing import Literal
+import json
 from ...utils.timezone import ist_now
 from ...db.base.database_manager import DatabaseManager
 from ...utils.logger import get_logger
@@ -33,15 +34,18 @@ class ServiceProviderManager:
         service_name: str = None,
         pincode: str = None,
         availability_status: Literal["available", "unavailable", "busy"] = None,
-        is_verified: bool = None,
-        specialization: str = None
+        is_verified: bool = None
     ):
         try:
             await self.db_manager.connect()
             filters = {}
 
             if service_name:
-                filters["ServiceName"] = service_name
+                # Assuming ServicesOffered is a comma-separated string, check if service_name is in it
+                # For SQLite, we can use LIKE
+                # But since it's text, we'll filter in Python or use a custom query
+                # For simplicity, assume it's comma-separated and use LIKE
+                pass  # Will handle in read method
 
             if pincode:
                 filters["Pincode"] = pincode
@@ -52,10 +56,21 @@ class ServiceProviderManager:
             if is_verified is not None:
                 filters["IsVerified"] = is_verified
 
-            if specialization:
-                filters["Specialization"] = specialization
-
-            return await self.db_manager.read(ServiceProvider, filters)
+            providers = await self.db_manager.read(ServiceProvider, filters)
+            if service_name:                
+                filtered_providers = []
+                for p in providers:
+                    if p.ServicesOffered:
+                        try:
+                            services = json.loads(p.ServicesOffered)
+                            if service_name in services:
+                                filtered_providers.append(p)
+                        except:
+                            # If not JSON, assume comma-separated
+                            if service_name in p.ServicesOffered:
+                                filtered_providers.append(p)
+                providers = filtered_providers
+            return providers
         finally:
             await self.db_manager.disconnect()
 

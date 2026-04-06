@@ -16,7 +16,6 @@ class ServiceRequest(Base):
     CustomerId = Column(Integer, ForeignKey("customer.CustomerId"), nullable=False)
     ServiceProviderId = Column(Integer, ForeignKey("ServiceProvider.ServiceProviderId"), nullable=True)
     
-    ServiceId = Column(String, nullable=True)
     ServiceName = Column(String, nullable=True)
 
     CustomerName = Column(String, nullable=False)
@@ -26,7 +25,7 @@ class ServiceRequest(Base):
     PreferredDate = Column(Date, nullable=True)
     PreferredTime = Column(String, nullable=True)
     RequestDescription = Column(Text, nullable=True)
-    WorkLocation = Column(String, nullable=True)
+    Pincode = Column(String, nullable=True)
 
     Status = Column(String, nullable=False, default="pending")  # pending, assigned, accepted, in_progress, completed, cancelled, rejected
 
@@ -37,6 +36,7 @@ class ServiceRequest(Base):
 
     CustomerNotes = Column(Text, nullable=True)
     ProviderNotes = Column(Text, nullable=True)
+    RequestedServices = Column(Text, nullable=True)  # JSON string of requested services
 
     EstimatedPrice = Column(Float, nullable=True)
     FinalPrice = Column(Float, nullable=True)

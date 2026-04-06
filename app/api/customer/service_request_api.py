@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from datetime import date
 from fastapi import APIRouter, HTTPException, Query, Form
 from ...config import settings
@@ -30,19 +30,19 @@ class ServiceRequestAPI:
     async def create_service_request(
         self,
         CustomerId: int = Form(...),
-        ServiceId: str = Form(None),
+        ServiceProviderId: Optional[int] = Form(None),
         ServiceName: str = Form(None),
         CustomerName: str = Form(...),
         CustomerPhone: str = Form(...),
         CustomerAddress: str = Form(...),
+        Pincode: str = Form(...),
         PreferredDate: date = Form(None),
         PreferredTime: str = Form(None),
         RequestDescription: str = Form(None),
-        WorkLocation: str = Form(None),
-        CustomerNotes: str = Form(None),
         EstimatedPrice: float = Form(None),
         AssignmentMode: Literal["random", "visible_profile"] = Form("random"),
-        NotificationPreference: Literal["whatsapp", "sms", "both"] = Form("both")
+        NotificationPreference: Literal["whatsapp", "sms", "both"] = Form("both"),
+        RequestedServices: str = Form(None)
     ):
         """
         Create a new service request.
@@ -53,21 +53,20 @@ class ServiceRequestAPI:
             # Create the request
             obj = ServiceRequestCreate(
                 CustomerId=CustomerId,
-                ServiceProviderId=None,
-                ServiceId=ServiceId,
+                ServiceProviderId=ServiceProviderId,
                 ServiceName=ServiceName,
                 CustomerName=CustomerName,
                 CustomerPhone=CustomerPhone,
                 CustomerAddress=CustomerAddress,
+                Pincode=Pincode,
                 PreferredDate=PreferredDate,
                 PreferredTime=PreferredTime,
                 RequestDescription=RequestDescription,
-                WorkLocation=WorkLocation,
                 Status="pending",
-                CustomerNotes=CustomerNotes,
                 EstimatedPrice=EstimatedPrice,
                 AssignmentMode=AssignmentMode,
-                NotificationPreference=NotificationPreference
+                NotificationPreference=NotificationPreference,
+                RequestedServices=RequestedServices
             )
 
             result = await self.manager.create_service_request(obj)
@@ -81,7 +80,8 @@ class ServiceRequestAPI:
             if AssignmentMode == "random":
                 auto_assign_result = await self.manager.auto_assign_provider(
                     request_id=request_id,
-                    work_location=WorkLocation
+                    pincode=Pincode,
+                    service_name=ServiceName
                 )
 
                 return {
@@ -200,11 +200,11 @@ class ServiceRequestAPI:
     async def create_and_auto_assign(
         self,
         CustomerId: int = Form(...),
-        ServiceName: str = Form(...),
+        ServiceName: str = Form(None),
         CustomerName: str = Form(...),
         CustomerPhone: str = Form(...),
         CustomerAddress: str = Form(...),
-        WorkLocation: str = Form(...),
+        Pincode: str = Form(...),
         PreferredDate: date = Form(None),
         PreferredTime: str = Form(None),
         RequestDescription: str = Form(None)
@@ -218,18 +218,18 @@ class ServiceRequestAPI:
             obj = ServiceRequestCreate(
                 CustomerId=CustomerId,
                 ServiceProviderId=None,
-                ServiceId=None,
                 ServiceName=ServiceName,
                 CustomerName=CustomerName,
                 CustomerPhone=CustomerPhone,
                 CustomerAddress=CustomerAddress,
+                Pincode=Pincode,
                 PreferredDate=PreferredDate,
                 PreferredTime=PreferredTime,
                 RequestDescription=RequestDescription,
-                WorkLocation=WorkLocation,
                 Status="pending",
                 AssignmentMode="random",
-                NotificationPreference="both"
+                NotificationPreference="both",
+                RequestedServices=RequestedServices
             )
 
             result = await self.manager.create_service_request(obj)
@@ -242,7 +242,8 @@ class ServiceRequestAPI:
             # Auto-assign provider
             auto_assign_result = await self.manager.auto_assign_provider(
                 request_id=request_id,
-                work_location=WorkLocation
+                pincode=Pincode,
+                service_name=ServiceName
             )
 
             return {
@@ -257,7 +258,6 @@ class ServiceRequestAPI:
 
     async def get_available_providers(
         self,
-        work_location: str = Query(None),
         pincode: str = Query(None),
         service_name: str = Query(None)
     ):
@@ -267,7 +267,6 @@ class ServiceRequestAPI:
         """
         try:
             providers = await self.manager.get_available_providers(
-                work_location=work_location,
                 pincode=pincode,
                 service_name=service_name
             )

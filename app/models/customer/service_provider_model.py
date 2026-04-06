@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from ...utils.timezone import ist_now
 from .sql_base import Base
@@ -11,8 +11,6 @@ class ServiceProvider(Base):
     __tablename__ = "ServiceProvider"
 
     ServiceProviderId = Column(Integer, primary_key=True, index=True)
-    ServiceId = Column(String, unique=True, nullable=False)
-    ServiceName = Column(String, nullable=False)
     ProviderName = Column(String, nullable=False)
 
     PhotoUrl = Column(String, nullable=True)
@@ -20,8 +18,6 @@ class ServiceProvider(Base):
     AadhaarOrIdProofUrl = Column(String, nullable=True)
 
     Address = Column(String, nullable=False)
-    WorkLocation = Column(String, nullable=False)
-    State = Column(String, nullable=False)
     Pincode = Column(String, nullable=False)
 
     PhoneNumber = Column(String, nullable=False)
@@ -40,6 +36,7 @@ class ServiceProvider(Base):
     Specialization = Column(String, nullable=False)
     ServiceDescription = Column(String, nullable=False)
     ServiceCategory = Column(String, nullable=False)
+    ServicesOffered = Column(Text, nullable=True)  # JSON string of services
 
     ProfileCompleted = Column(Boolean, nullable=True, default=False)
 

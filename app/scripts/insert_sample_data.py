@@ -47,28 +47,28 @@ def insert_sample_data():
     # Insert 2 Service Providers
     sample_providers = [
         (
-            "SVC001", "Medical Assistant", "service provider 1", None, None, None,
-            "123 Main St, City", "City Center", "New York", "10001",
+            "service provider 1", None, None, None,
+            "123 Main St, City", "10001",
             "9876543201", "provider1@test.com", 5, "Male", "1990-01-01",
             "LIC001", "available", 4.5, 1, 1, "General Care", 
-            "General medical assistance", "Healthcare", 1
+            "General medical assistance", "Healthcare", '["Medical Assistant", "Nursing Care"]', 1
         ),
         (
-            "SVC002", "Nursing Care", "service provider 2", None, None, None,
-            "456 Oak St, Town", "Town Center", "Los Angeles", "90001",
+            "service provider 2", None, None, None,
+            "456 Oak St, Town", "90001",
             "9876543202", "provider2@test.com", 3, "Female", "1992-05-15",
             "LIC002", "available", 4.0, 1, 1, "Nursing",
-            "Professional nursing care", "Healthcare", 1
+            "Professional nursing care", "Healthcare", '["Nursing Care", "Elder Care"]', 1
         )
     ]
     
     cursor.executemany("""
         INSERT INTO ServiceProvider (
-            ServiceId, ServiceName, ProviderName, PhotoUrl, CertificateUrl, AadhaarOrIdProofUrl,
-            Address, WorkLocation, State, Pincode, PhoneNumber, Email, ExperienceYears,
+            ProviderName, PhotoUrl, CertificateUrl, AadhaarOrIdProofUrl,
+            Address, Pincode, PhoneNumber, Email, ExperienceYears,
             Gender, DateOfBirth, LicenseNumber, AvailabilityStatus, Rating, IsVerified, IsActive,
-            Specialization, ServiceDescription, ServiceCategory, ProfileCompleted
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            Specialization, ServiceDescription, ServiceCategory, ServicesOffered, ProfileCompleted
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sample_providers)
     
     print(f"Inserted {len(sample_providers)} service providers")
@@ -85,32 +85,32 @@ def insert_sample_data():
     # Insert 3 Service Requests
     sample_requests = [
         (
-            customers.get("customer1"), providers.get("service provider 1"), "SVC001", "Medical Assistant", "customer1", "9876543210",
+            customers.get("customer1"), providers.get("service provider 1"), "customer1", "9876543210",
             "123 Customer St, City", "2024-04-10", "10:00 AM", "General checkup needed",
-            "City Center", "pending", None, None, None, None,
-            "Customer needs regular checkup", None, 500.0, None, "pending", "random", "both"
+            "560001", "pending", None, None, None, None,
+            "Customer needs regular checkup", None, '["Medical Assistant"]', 500.0, None, "pending", "random", "both"
         ),
         (
-            customers.get("customer1"), providers.get("service provider 2"), "SVC002", "Nursing Care", "customer1", "9876543210",
+            customers.get("customer1"), providers.get("service provider 2"), "customer1", "9876543210",
             "456 Customer Ave, Town", "2024-04-11", "2:00 PM", "Post-surgery care required",
-            "Town Center", "assigned", datetime.now().isoformat(), None, None, None,
-            None, "Provider assigned for post-op care", 800.0, None, "pending", "manual", "both"
+            "560002", "assigned", datetime.now().isoformat(), None, None, None,
+            None, "Provider assigned for post-op care", '["Nursing Care"]', 800.0, None, "pending", "manual", "both"
         ),
         (
-            customers.get("customer2"), providers.get("service provider 1"), "SVC001", "Medical Assistant", "customer2", "9876543211",
+            customers.get("customer2"), providers.get("service provider 1"), "customer2", "9876543211",
             "789 Customer Rd, Village", "2024-04-12", "11:00 AM", "Rehabilitation therapy needed",
-            "Village Center", "accepted", datetime.now().isoformat(), datetime.now().isoformat(), None, None,
-            "Sports injury rehabilitation", "Provider confirmed availability", 1200.0, None, "pending", "random", "whatsapp"
+            "560003", "accepted", datetime.now().isoformat(), datetime.now().isoformat(), None, None,
+            "Sports injury rehabilitation", "Provider confirmed availability", '["Medical Assistant", "Nursing Care"]', 1200.0, None, "pending", "random", "whatsapp"
         )
     ]
     
     cursor.executemany("""
         INSERT INTO ServiceRequest (
-            CustomerId, ServiceProviderId, ServiceId, ServiceName, CustomerName, CustomerPhone,
-            CustomerAddress, PreferredDate, PreferredTime, RequestDescription, WorkLocation, Status,
+            CustomerId, ServiceProviderId, CustomerName, CustomerPhone,
+            CustomerAddress, PreferredDate, PreferredTime, RequestDescription, Pincode, Status,
             AssignedAt, AcceptedAt, CompletedAt, CancelledAt, CustomerNotes, ProviderNotes,
-            EstimatedPrice, FinalPrice, PaymentStatus, AssignmentMode, NotificationPreference
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            RequestedServices, EstimatedPrice, FinalPrice, PaymentStatus, AssignmentMode, NotificationPreference
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sample_requests)
     
     print(f"Inserted {len(sample_requests)} service requests")

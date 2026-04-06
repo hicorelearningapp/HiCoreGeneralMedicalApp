@@ -444,15 +444,11 @@ class TableCreator:
         sql = """
         CREATE TABLE IF NOT EXISTS ServiceProvider (
             ServiceProviderId INTEGER PRIMARY KEY AUTOINCREMENT,
-            ServiceId TEXT UNIQUE NOT NULL,
-            ServiceName TEXT NOT NULL,
             ProviderName TEXT NOT NULL,
             PhotoUrl TEXT,
             CertificateUrl TEXT,
             AadhaarOrIdProofUrl TEXT,
             Address TEXT NOT NULL,
-            WorkLocation TEXT NOT NULL,
-            State TEXT NOT NULL,
             Pincode TEXT NOT NULL,
             PhoneNumber TEXT NOT NULL,
             Email TEXT NOT NULL,
@@ -467,6 +463,7 @@ class TableCreator:
             Specialization TEXT NOT NULL,
             ServiceDescription TEXT NOT NULL,
             ServiceCategory TEXT NOT NULL,
+            ServicesOffered TEXT,
             ProfileCompleted BOOLEAN DEFAULT 0,
             CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -483,15 +480,13 @@ class TableCreator:
             RequestId INTEGER PRIMARY KEY AUTOINCREMENT,
             CustomerId INTEGER NOT NULL,
             ServiceProviderId INTEGER,
-            ServiceId TEXT,
-            ServiceName TEXT,
             CustomerName TEXT NOT NULL,
             CustomerPhone TEXT NOT NULL,
             CustomerAddress TEXT NOT NULL,
             PreferredDate DATE,
             PreferredTime TEXT,
             RequestDescription TEXT,
-            WorkLocation TEXT,
+            Pincode TEXT,
             Status TEXT DEFAULT 'pending',
             AssignedAt DATETIME,
             AcceptedAt DATETIME,
@@ -499,6 +494,7 @@ class TableCreator:
             CancelledAt DATETIME,
             CustomerNotes TEXT,
             ProviderNotes TEXT,
+            RequestedServices TEXT,
             EstimatedPrice REAL,
             FinalPrice REAL,
             PaymentStatus TEXT DEFAULT 'pending',
@@ -694,7 +690,7 @@ class TableCreator:
     # ------------------------------------------------------------------
     def create_all_tables(self):
         # Customer tables
-        # self.create_customer_table()
+        self.create_customer_table()
         # self.create_medicine_type_table()
         # self.create_medicine_category_table()
         # self.create_medicine_table()
@@ -715,18 +711,18 @@ class TableCreator:
 
         # # self.create_doctor_table()
         # # self.create_doctor_appointment_table()
-        self.create_doctor_service_table()
+        # self.create_doctor_service_table()
 
         # self.create_retailer_table()
-        # self.create_service_provider_table()
-        # self.create_service_request_table()
-        # self.create_notification_preference_table()
+        self.create_service_provider_table()
+        self.create_service_request_table()
+        self.create_notification_preference_table()
 
         
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("Customer")
+        # self.remove_table_if_exists("ServiceProvider")
 
 
         # tables = [

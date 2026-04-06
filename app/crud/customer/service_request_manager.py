@@ -164,7 +164,7 @@ class ServiceRequestManager:
         finally:
             await self.db_manager.disconnect()
 
-    async def auto_assign_provider(self, request_id: int, work_location: str = None, pincode: str = None):
+    async def auto_assign_provider(self, request_id: int, pincode: str = None, service_name: str = None):
         """
         Auto-assign an available provider using random assignment model.
         Returns the assigned provider or None if no provider is available.
@@ -179,14 +179,26 @@ class ServiceRequestManager:
                 "IsVerified": True
             }
 
-            if work_location:
-                filters["WorkLocation"] = work_location
-
             if pincode:
                 filters["Pincode"] = pincode
 
             # Get eligible providers
             eligible_providers = await self.db_manager.read(ServiceProvider, filters)
+
+            if service_name:
+                import json
+                filtered_providers = []
+                for p in eligible_providers:
+                    if p.ServicesOffered:
+                        try:
+                            services = json.loads(p.ServicesOffered)
+                            if service_name in services:
+                                filtered_providers.append(p)
+                        except:
+                            # If not JSON, assume comma-separated
+                            if service_name in p.ServicesOffered:
+                                filtered_providers.append(p)
+                eligible_providers = filtered_providers
 
             if not eligible_providers:
                 return {
@@ -238,7 +250,7 @@ class ServiceRequestManager:
         finally:
             await self.db_manager.disconnect()
 
-    async def get_available_providers(self, work_location: str = None, pincode: str = None, service_name: str = None):
+    async def get_available_providers(self, pincode: str = None, service_name: str = None):
         """
         Get all available providers for visible profile booking model.
         """
@@ -251,16 +263,27 @@ class ServiceRequestManager:
                 "IsVerified": True
             }
 
-            if work_location:
-                filters["WorkLocation"] = work_location
-
             if pincode:
                 filters["Pincode"] = pincode
 
-            if service_name:
-                filters["ServiceName"] = service_name
+            providers = await self.db_manager.read(ServiceProvider, filters)
 
-            return await self.db_manager.read(ServiceProvider, filters)
+            if service_name:
+                import json
+                filtered_providers = []
+                for p in providers:
+                    if p.ServicesOffered:
+                        try:
+                            services = json.loads(p.ServicesOffered)
+                            if service_name in services:
+                                filtered_providers.append(p)
+                        except:
+                            # If not JSON, assume comma-separated
+                            if service_name in p.ServicesOffered:
+                                filtered_providers.append(p)
+                providers = filtered_providers
+
+            return providers
 
         finally:
             await self.db_manager.disconnect()

@@ -27,12 +27,8 @@ class ServiceProviderAPI:
 
     async def create_service_provider(
         self,
-        ServiceId: str = Form(...),
-        ServiceName: str = Form(...),
         ProviderName: str = Form(...),
         Address: str = Form(...),
-        WorkLocation: str = Form(...),
-        State: str = Form(...),
         Pincode: str = Form(...),
         PhoneNumber: str = Form(...),
         Email: str = Form(...),
@@ -47,6 +43,7 @@ class ServiceProviderAPI:
         Specialization: str = Form(...),
         ServiceDescription: str = Form(...),
         ServiceCategory: str = Form(...),
+        ServicesOffered: str = Form(None),
         ProfileCompleted: bool = Form(False),
         Photo: UploadFile = File(None),
         Certificate: UploadFile = File(None),
@@ -58,15 +55,11 @@ class ServiceProviderAPI:
             id_proof_path = await save_picture(AadhaarOrIdProof, "ServiceProvider") if AadhaarOrIdProof else None
 
             obj = ServiceProviderCreate(
-                ServiceId=ServiceId,
-                ServiceName=ServiceName,
                 ProviderName=ProviderName,
                 PhotoUrl=photo_path,
                 CertificateUrl=certificate_path,
                 AadhaarOrIdProofUrl=id_proof_path,
                 Address=Address,
-                WorkLocation=WorkLocation,
-                State=State,
                 Pincode=Pincode,
                 PhoneNumber=PhoneNumber,
                 Email=Email,
@@ -81,6 +74,7 @@ class ServiceProviderAPI:
                 Specialization=Specialization,
                 ServiceDescription=ServiceDescription,
                 ServiceCategory=ServiceCategory,
+                ServicesOffered=ServicesOffered,
                 ProfileCompleted=ProfileCompleted
             )
             return await self.manager.create_service_provider(obj)
@@ -92,16 +86,14 @@ class ServiceProviderAPI:
         service_name: str = Query(None),
         pincode: str = Query(None),
         availability_status: Literal["available", "unavailable", "busy"] = Query(None),
-        is_verified: bool = Query(None),
-        specialization: str = Query(None)
+        is_verified: bool = Query(None)
     ):
         try:
             return await self.manager.get_service_providers(
                 service_name=service_name,
                 pincode=pincode,
                 availability_status=availability_status,
-                is_verified=is_verified,
-                specialization=specialization
+                is_verified=is_verified
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -115,12 +107,8 @@ class ServiceProviderAPI:
     async def update_service_provider(
         self,
         service_provider_id: int,
-        ServiceId: str = Form(None),
-        ServiceName: str = Form(None),
         ProviderName: str = Form(None),
         Address: str = Form(None),
-        WorkLocation: str = Form(None),
-        State: str = Form(None),
         Pincode: str = Form(None),
         PhoneNumber: str = Form(None),
         Email: str = Form(None),
@@ -135,6 +123,7 @@ class ServiceProviderAPI:
         Specialization: str = Form(None),
         ServiceDescription: str = Form(None),
         ServiceCategory: str = Form(None),
+        ServicesOffered: str = Form(None),
         ProfileCompleted: bool = Form(False),
         Photo: UploadFile = File(None),
         Certificate: UploadFile = File(None),
@@ -147,12 +136,8 @@ class ServiceProviderAPI:
 
             update_data = {}
             for field_name, value in {
-                "ServiceId": ServiceId,
-                "ServiceName": ServiceName,
                 "ProviderName": ProviderName,
                 "Address": Address,
-                "WorkLocation": WorkLocation,
-                "State": State,
                 "Pincode": Pincode,
                 "PhoneNumber": PhoneNumber,
                 "Email": Email,
@@ -167,6 +152,7 @@ class ServiceProviderAPI:
                 "Specialization": Specialization,
                 "ServiceDescription": ServiceDescription,
                 "ServiceCategory": ServiceCategory,
+                "ServicesOffered": ServicesOffered,
                 "ProfileCompleted": ProfileCompleted
             }.items():
                 if value is not None:

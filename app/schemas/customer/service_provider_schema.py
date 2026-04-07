@@ -40,10 +40,11 @@ class ServiceProviderBase(BaseModel):
 
 class ServiceProviderCreate(ServiceProviderBase):
     ProviderName: str
+    Password: str
 
 
 class ServiceProviderUpdate(ServiceProviderBase):
-    pass
+    Password: Optional[str] = None
 
 
 class ServiceProviderRead(ServiceProviderBase):

@@ -49,14 +49,14 @@ def insert_sample_data():
         (
             "service provider 1", None, None, None,
             "123 Main St, City", "10001",
-            "9876543201", "provider1@test.com", 5, "Male", "1990-01-01",
+            "9876543201", "provider1@test.com", "password1", 5, "Male", "1990-01-01",
             "LIC001", "available", 4.5, 1, 1, "General Care", 
             "General medical assistance", '["Medical Assistant", "Nursing Care"]'
         ),
         (
             "service provider 2", None, None, None,
             "456 Oak St, Town", "90001",
-            "9876543202", "provider2@test.com", 3, "Female", "1992-05-15",
+            "9876543202", "provider2@test.com", "password2", 3, "Female", "1992-05-15",
             "LIC002", "available", 4.0, 1, 1, "Nursing",
             "Professional nursing care", '["Nursing Care", "Elder Care"]'
         )
@@ -65,10 +65,10 @@ def insert_sample_data():
     cursor.executemany("""
         INSERT INTO ServiceProvider (
             ProviderName, PhotoUrl, CertificateUrl, AadhaarOrIdProofUrl,
-            Address, Pincode, PhoneNumber, Email, ExperienceYears,
+            Address, Pincode, PhoneNumber, Email, Password, ExperienceYears,
             Gender, DateOfBirth, LicenseNumber, AvailabilityStatus, Rating, IsVerified, IsActive,
             Specialization, ServiceDescription, ServicesOffered
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sample_providers)
     
     print(f"Inserted {len(sample_providers)} service providers")

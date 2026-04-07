@@ -22,6 +22,7 @@ class ServiceProvider(Base):
 
     PhoneNumber = Column(String, nullable=False)
     Email = Column(String, nullable=False)
+    Password = Column(String, nullable=True)
 
     ExperienceYears = Column(Integer, nullable=False)
     Gender = Column(String, nullable=False)

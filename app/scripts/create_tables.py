@@ -460,6 +460,7 @@ class TableCreator:
             Rating REAL DEFAULT 0.0,
             IsVerified BOOLEAN DEFAULT 0,
             IsActive BOOLEAN DEFAULT 1,
+            Password TEXT,
             Specialization TEXT NOT NULL,
             ServiceDescription TEXT NOT NULL,
             ServicesOffered TEXT,
@@ -720,7 +721,7 @@ class TableCreator:
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("ServiceProvider")
+        # self.remove_table_if_exists("NotificationPreference")
 
 
         # tables = [

@@ -36,15 +36,13 @@ class ServiceProviderAPI:
         Gender: str = Form(...),
         DateOfBirth: str = Form(...),
         LicenseNumber: str = Form(None),
-        AvailabilityStatus: Literal["available", "unavailable", "busy"] = Form("available"),
+        AvailabilityStatus: Literal["available", "unavailable"] = Form("available"),
         Rating: float = Form(0.0),
         IsVerified: bool = Form(False),
         IsActive: bool = Form(True),
         Specialization: str = Form(...),
         ServiceDescription: str = Form(...),
-        ServiceCategory: str = Form(...),
         ServicesOffered: str = Form(None),
-        ProfileCompleted: bool = Form(False),
         Photo: UploadFile = File(None),
         Certificate: UploadFile = File(None),
         AadhaarOrIdProof: UploadFile = File(None)
@@ -73,9 +71,7 @@ class ServiceProviderAPI:
                 IsActive=IsActive,
                 Specialization=Specialization,
                 ServiceDescription=ServiceDescription,
-                ServiceCategory=ServiceCategory,
-                ServicesOffered=ServicesOffered,
-                ProfileCompleted=ProfileCompleted
+                ServicesOffered=ServicesOffered
             )
             return await self.manager.create_service_provider(obj)
         except Exception as e:
@@ -85,7 +81,7 @@ class ServiceProviderAPI:
         self,
         service_name: str = Query(None),
         pincode: str = Query(None),
-        availability_status: Literal["available", "unavailable", "busy"] = Query(None),
+        availability_status: Literal["available", "unavailable"] = Query(None),
         is_verified: bool = Query(None)
     ):
         try:
@@ -116,15 +112,13 @@ class ServiceProviderAPI:
         Gender: str = Form(None),
         DateOfBirth: str = Form(None),
         LicenseNumber: str = Form(None),
-        AvailabilityStatus: Literal["available", "unavailable", "busy"] = Form(None),
+        AvailabilityStatus: Literal["available", "unavailable"] = Form(None),
         Rating: float = Form(None),
         IsVerified: bool = Form(None),
         IsActive: bool = Form(None),
         Specialization: str = Form(None),
         ServiceDescription: str = Form(None),
-        ServiceCategory: str = Form(None),
         ServicesOffered: str = Form(None),
-        ProfileCompleted: bool = Form(False),
         Photo: UploadFile = File(None),
         Certificate: UploadFile = File(None),
         AadhaarOrIdProof: UploadFile = File(None)
@@ -151,9 +145,7 @@ class ServiceProviderAPI:
                 "IsActive": IsActive,
                 "Specialization": Specialization,
                 "ServiceDescription": ServiceDescription,
-                "ServiceCategory": ServiceCategory,
-                "ServicesOffered": ServicesOffered,
-                "ProfileCompleted": ProfileCompleted
+                "ServicesOffered": ServicesOffered
             }.items():
                 if value is not None:
                     update_data[field_name] = value

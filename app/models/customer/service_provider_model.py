@@ -35,10 +35,7 @@ class ServiceProvider(Base):
 
     Specialization = Column(String, nullable=False)
     ServiceDescription = Column(String, nullable=False)
-    ServiceCategory = Column(String, nullable=False)
     ServicesOffered = Column(Text, nullable=True)  # JSON string of services
-
-    ProfileCompleted = Column(Boolean, nullable=True, default=False)
 
     # Foreign Keys
 

@@ -462,9 +462,7 @@ class TableCreator:
             IsActive BOOLEAN DEFAULT 1,
             Specialization TEXT NOT NULL,
             ServiceDescription TEXT NOT NULL,
-            ServiceCategory TEXT NOT NULL,
             ServicesOffered TEXT,
-            ProfileCompleted BOOLEAN DEFAULT 0,
             CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );

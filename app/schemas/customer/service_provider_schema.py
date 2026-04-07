@@ -32,10 +32,7 @@ class ServiceProviderBase(BaseModel):
 
     Specialization: str
     ServiceDescription: str
-    ServiceCategory: str
     ServicesOffered: Optional[str] = None
-
-    ProfileCompleted: Optional[bool] = False
 
     class Config:
         from_attributes = True

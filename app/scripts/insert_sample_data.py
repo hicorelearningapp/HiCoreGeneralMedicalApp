@@ -51,14 +51,14 @@ def insert_sample_data():
             "123 Main St, City", "10001",
             "9876543201", "provider1@test.com", 5, "Male", "1990-01-01",
             "LIC001", "available", 4.5, 1, 1, "General Care", 
-            "General medical assistance", "Healthcare", '["Medical Assistant", "Nursing Care"]', 1
+            "General medical assistance", '["Medical Assistant", "Nursing Care"]'
         ),
         (
             "service provider 2", None, None, None,
             "456 Oak St, Town", "90001",
             "9876543202", "provider2@test.com", 3, "Female", "1992-05-15",
             "LIC002", "available", 4.0, 1, 1, "Nursing",
-            "Professional nursing care", "Healthcare", '["Nursing Care", "Elder Care"]', 1
+            "Professional nursing care", '["Nursing Care", "Elder Care"]'
         )
     ]
     
@@ -67,8 +67,8 @@ def insert_sample_data():
             ProviderName, PhotoUrl, CertificateUrl, AadhaarOrIdProofUrl,
             Address, Pincode, PhoneNumber, Email, ExperienceYears,
             Gender, DateOfBirth, LicenseNumber, AvailabilityStatus, Rating, IsVerified, IsActive,
-            Specialization, ServiceDescription, ServiceCategory, ServicesOffered, ProfileCompleted
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            Specialization, ServiceDescription, ServicesOffered
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sample_providers)
     
     print(f"Inserted {len(sample_providers)} service providers")

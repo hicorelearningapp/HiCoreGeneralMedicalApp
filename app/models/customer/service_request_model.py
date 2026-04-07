@@ -36,7 +36,6 @@ class ServiceRequest(Base):
 
     CustomerNotes = Column(Text, nullable=True)
     ProviderNotes = Column(Text, nullable=True)
-    RequestedServices = Column(Text, nullable=True)  # JSON string of requested services
 
     EstimatedPrice = Column(Float, nullable=True)
     FinalPrice = Column(Float, nullable=True)

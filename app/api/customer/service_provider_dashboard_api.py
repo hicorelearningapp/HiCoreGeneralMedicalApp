@@ -53,7 +53,6 @@ class ServiceProviderDashboardAPI:
             for req in requests:
                 formatted_requests.append({
                     "request_id": req.RequestId,
-                    "service_id": req.ServiceId,
                     "service_name": req.ServiceName,
                     "customer_name": req.CustomerName,
                     "customer_phone": req.CustomerPhone,
@@ -109,7 +108,6 @@ class ServiceProviderDashboardAPI:
                 "success": True,
                 "data": {
                     "request_id": request.RequestId,
-                    "service_id": request.ServiceId,
                     "service_name": request.ServiceName,
                     "customer_id": request.CustomerId,
                     "customer_name": request.CustomerName,

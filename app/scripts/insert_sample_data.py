@@ -83,33 +83,83 @@ def insert_sample_data():
     print(f"Customer IDs: {customers}")
     
     # Insert 3 Service Requests
+
     sample_requests = [
         (
-            customers.get("customer1"), providers.get("service provider 1"), "customer1", "9876543210",
-            "123 Customer St, City", "2024-04-10", "10:00 AM", "General checkup needed",
-            "560001", "pending", None, None, None, None,
-            "Customer needs regular checkup", None, '["Medical Assistant"]', 500.0, None, "pending", "random", "both"
+            customers.get("customer1"),
+            providers.get("service provider 1"),
+            "General Checkup",
+            "customer1",
+            "9876543210",
+            "123 Customer St, City",
+            "2024-04-10",
+            "10:00 AM",
+            "General checkup needed",
+            "560001",
+            "pending",
+            None, None, None, None,
+            "Customer needs regular checkup",
+            None,
+            500.0,
+            None,
+            "pending",
+            "random",
+            "both"
         ),
         (
-            customers.get("customer1"), providers.get("service provider 2"), "customer1", "9876543210",
-            "456 Customer Ave, Town", "2024-04-11", "2:00 PM", "Post-surgery care required",
-            "560002", "assigned", datetime.now().isoformat(), None, None, None,
-            None, "Provider assigned for post-op care", '["Nursing Care"]', 800.0, None, "pending", "manual", "both"
+            customers.get("customer1"),
+            providers.get("service provider 2"),
+            "Post Surgery Care",
+            "customer1",
+            "9876543210",
+            "456 Customer Ave, Town",
+            "2024-04-11",
+            "2:00 PM",
+            "Post-surgery care required",
+            "560002",
+            "assigned",
+            datetime.now().isoformat(),
+            None, None, None,
+            None,
+            "Provider assigned for post-op care",
+            800.0,
+            None,
+            "pending",
+            "manual",
+            "both"
         ),
         (
-            customers.get("customer2"), providers.get("service provider 1"), "customer2", "9876543211",
-            "789 Customer Rd, Village", "2024-04-12", "11:00 AM", "Rehabilitation therapy needed",
-            "560003", "accepted", datetime.now().isoformat(), datetime.now().isoformat(), None, None,
-            "Sports injury rehabilitation", "Provider confirmed availability", '["Medical Assistant", "Nursing Care"]', 1200.0, None, "pending", "random", "whatsapp"
+            customers.get("customer2"),
+            providers.get("service provider 1"),
+            "Rehabilitation Therapy",
+            "customer2",
+            "9876543211",
+            "789 Customer Rd, Village",
+            "2024-04-12",
+            "11:00 AM",
+            "Rehabilitation therapy needed",
+            "560003",
+            "accepted",
+            datetime.now().isoformat(),
+            datetime.now().isoformat(),
+            None, None,
+            "Sports injury rehabilitation",
+            "Provider confirmed availability",
+            1200.0,
+            None,
+            "pending",
+            "random",
+            "whatsapp"
         )
     ]
-    
+
     cursor.executemany("""
         INSERT INTO ServiceRequest (
-            CustomerId, ServiceProviderId, CustomerName, CustomerPhone,
-            CustomerAddress, PreferredDate, PreferredTime, RequestDescription, Pincode, Status,
-            AssignedAt, AcceptedAt, CompletedAt, CancelledAt, CustomerNotes, ProviderNotes,
-            RequestedServices, EstimatedPrice, FinalPrice, PaymentStatus, AssignmentMode, NotificationPreference
+            CustomerId, ServiceProviderId, ServiceName, CustomerName, CustomerPhone,
+            CustomerAddress, PreferredDate, PreferredTime, RequestDescription,
+            Pincode, Status, AssignedAt, AcceptedAt, CompletedAt, CancelledAt,
+            CustomerNotes, ProviderNotes, EstimatedPrice, FinalPrice,
+            PaymentStatus, AssignmentMode, NotificationPreference
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, sample_requests)
     

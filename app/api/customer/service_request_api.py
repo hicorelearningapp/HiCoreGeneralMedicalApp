@@ -41,8 +41,7 @@ class ServiceRequestAPI:
         RequestDescription: str = Form(None),
         EstimatedPrice: float = Form(None),
         AssignmentMode: Literal["random", "visible_profile"] = Form("random"),
-        NotificationPreference: Literal["whatsapp", "sms", "both"] = Form("both"),
-        RequestedServices: str = Form(None)
+        NotificationPreference: Literal["whatsapp", "sms", "both"] = Form("both")
     ):
         """
         Create a new service request.
@@ -65,8 +64,7 @@ class ServiceRequestAPI:
                 Status="pending",
                 EstimatedPrice=EstimatedPrice,
                 AssignmentMode=AssignmentMode,
-                NotificationPreference=NotificationPreference,
-                RequestedServices=RequestedServices
+                NotificationPreference=NotificationPreference
             )
 
             result = await self.manager.create_service_request(obj)
@@ -228,8 +226,7 @@ class ServiceRequestAPI:
                 RequestDescription=RequestDescription,
                 Status="pending",
                 AssignmentMode="random",
-                NotificationPreference="both",
-                RequestedServices=RequestedServices
+                NotificationPreference="both"
             )
 
             result = await self.manager.create_service_request(obj)

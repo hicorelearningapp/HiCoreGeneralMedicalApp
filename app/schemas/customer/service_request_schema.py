@@ -30,7 +30,6 @@ class ServiceRequestBase(BaseModel):
 
     CustomerNotes: Optional[str] = None
     ProviderNotes: Optional[str] = None
-    RequestedServices: Optional[str] = None
     Pincode: Optional[str] = None
 
     EstimatedPrice: Optional[float] = None

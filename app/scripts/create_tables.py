@@ -479,6 +479,7 @@ class TableCreator:
             RequestId INTEGER PRIMARY KEY AUTOINCREMENT,
             CustomerId INTEGER NOT NULL,
             ServiceProviderId INTEGER,
+            ServiceName TEXT MOT NULL,
             CustomerName TEXT NOT NULL,
             CustomerPhone TEXT NOT NULL,
             CustomerAddress TEXT NOT NULL,
@@ -493,7 +494,6 @@ class TableCreator:
             CancelledAt DATETIME,
             CustomerNotes TEXT,
             ProviderNotes TEXT,
-            RequestedServices TEXT,
             EstimatedPrice REAL,
             FinalPrice REAL,
             PaymentStatus TEXT DEFAULT 'pending',
@@ -721,7 +721,7 @@ class TableCreator:
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("NotificationPreference")
+        # self.remove_table_if_exists("Customer")
 
 
         # tables = [

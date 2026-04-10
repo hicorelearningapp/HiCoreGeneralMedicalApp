@@ -10,15 +10,15 @@ def insert_sample_data():
     cursor = conn.cursor()
     
     # Check if sample data already exists
-    cursor.execute("SELECT COUNT(*) FROM ServiceProvider WHERE ProviderName LIKE 'service provider%'")
-    provider_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM customer WHERE CustomerName LIKE 'customer%'")
-    customer_count = cursor.fetchone()[0]
+    # cursor.execute("SELECT COUNT(*) FROM ServiceProvider WHERE ProviderName LIKE 'service provider%'")
+    # provider_count = cursor.fetchone()[0]
+    # cursor.execute("SELECT COUNT(*) FROM customer WHERE CustomerName LIKE 'customer%'")
+    # customer_count = cursor.fetchone()[0]
     
-    if provider_count > 0 or customer_count > 0:
-        print("Sample data already exists. Skipping insertion.")
-        conn.close()
-        return
+    # if provider_count > 0 or customer_count > 0:
+    #     print("Sample data already exists. Skipping insertion.")
+    #     conn.close()
+    #     return
     
     # Insert 2 Customers
     sample_customers = [
@@ -36,7 +36,7 @@ def insert_sample_data():
     
     cursor.executemany("""
         INSERT INTO customer (
-            CustomerName, ProfilePicture, DateOfBirth, Gender, Email, PasswordHash, CustomerPhoneNumber,
+            FullName, ProfilePicture, DateOfBirth, Gender, Email, PasswordHash, PhoneNumber,
             AddressLine1, AddressLine2, City, State, PostalCode,
             Latitude, Longitude, BankName, AccountNumber, IFSCCode, Branch
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -74,20 +74,20 @@ def insert_sample_data():
     print(f"Inserted {len(sample_providers)} service providers")
     
     # Get the inserted provider and customer IDs
-    cursor.execute("SELECT ServiceProviderId, ProviderName FROM ServiceProvider WHERE ProviderName LIKE 'service provider%'")
-    providers = {name: id for id, name in cursor.fetchall()}
-    cursor.execute("SELECT CustomerId, CustomerName FROM customer WHERE CustomerName LIKE 'customer%'")
-    customers = {name: id for id, name in cursor.fetchall()}
+    # cursor.execute("SELECT ServiceProviderId, ProviderName FROM ServiceProvider WHERE ProviderName LIKE 'service provider%'")
+    # providers = {name: id for id, name in cursor.fetchall()}
+    # cursor.execute("SELECT CustomerId, CustomerName FROM customer WHERE CustomerName LIKE 'customer%'")
+    # customers = {name: id for id, name in cursor.fetchall()}
     
-    print(f"Provider IDs: {providers}")
-    print(f"Customer IDs: {customers}")
+    # print(f"Provider IDs: {providers}")
+    # print(f"Customer IDs: {customers}")
     
     # Insert 3 Service Requests
 
     sample_requests = [
         (
-            customers.get("customer1"),
-            providers.get("service provider 1"),
+            1, # customers.get("customer1"),
+            1, # providers.get("service provider 1"),
             "General Checkup",
             "customer1",
             "9876543210",
@@ -107,8 +107,8 @@ def insert_sample_data():
             "both"
         ),
         (
-            customers.get("customer1"),
-            providers.get("service provider 2"),
+            1, # customers.get("customer1"),
+            2, # providers.get("service provider 2"),
             "Post Surgery Care",
             "customer1",
             "9876543210",
@@ -129,8 +129,8 @@ def insert_sample_data():
             "both"
         ),
         (
-            customers.get("customer2"),
-            providers.get("service provider 1"),
+            2, # customers.get("customer2"),
+            1, # providers.get("service provider 1"),
             "Rehabilitation Therapy",
             "customer2",
             "9876543211",
@@ -167,8 +167,8 @@ def insert_sample_data():
     
     # Insert Notification Preferences for customers
     notification_preferences = [
-        (customers.get("customer1"), 1, 1, 0, 1, "both", 1, 1, 1, 1, 1, 0, 0, "22:00", "08:00", 1),
-        (customers.get("customer2"), 1, 0, 1, 1, "sms", 1, 1, 1, 1, 1, 1, 0, None, None, 0)
+        (1, 1, 1, 0, 1, "both", 1, 1, 1, 1, 1, 0, 0, "22:00", "08:00", 1),
+        (2, 1, 0, 1, 1, "sms", 1, 1, 1, 1, 1, 1, 0, None, None, 0)
     ]
     
     cursor.executemany("""

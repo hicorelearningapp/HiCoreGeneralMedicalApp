@@ -21,13 +21,13 @@ class TableCreator:
         sql = """
         CREATE TABLE IF NOT EXISTS Customer (
             CustomerId INTEGER PRIMARY KEY AUTOINCREMENT,
-            CustomerName TEXT,
+            FullName TEXT,
             ProfilePicture TEXT,
             DateOfBirth DATE,
             Gender TEXT,
             Email TEXT UNIQUE,
             PasswordHash TEXT,
-            CustomerPhoneNumber TEXT,
+            PhoneNumber TEXT,
 
             AddressLine1 TEXT,
             AddressLine2 TEXT,
@@ -689,14 +689,14 @@ class TableCreator:
     # ------------------------------------------------------------------
     def create_all_tables(self):
         # Customer tables
-        self.create_customer_table()
+        # self.create_customer_table()
         # self.create_medicine_type_table()
         # self.create_medicine_category_table()
         # self.create_medicine_table()
         # # self.create_medicine_info_table()
 
 
-        # # self.create_customer_notification_table()
+        self.create_customer_notification_table()
         # self.create_cart_table()
         # self.create_cart_item_table()
         # self.create_prescription_table()
@@ -713,15 +713,15 @@ class TableCreator:
         # self.create_doctor_service_table()
 
         # self.create_retailer_table()
-        self.create_service_provider_table()
-        self.create_service_request_table()
-        self.create_notification_preference_table()
+        # self.create_service_provider_table()
+        # self.create_service_request_table()
+        # self.create_notification_preference_table()
 
         
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("Customer")
+        # self.remove_table_if_exists("NotificationPreference")
 
 
         # tables = [

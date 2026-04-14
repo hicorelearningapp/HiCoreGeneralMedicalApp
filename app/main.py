@@ -11,9 +11,10 @@ from app.api.customer.prescription_api import PrescriptionAPI
 from app.api.customer.customer_notification_api import CustomerNotificationAPI
 from app.api.customer.lap_api import LabAPI, TestAPI, AppointmentAPI
 from app.api.customer.doctor_api import DoctorAPI, DoctorAppointmentAPI
-from app.api.customer.doctor_service_api import DoctorServiceAPI
 from app.api.customer.retailer_api import RetailerAPI
 from app.api.customer.service_provider_api import ServiceProviderAPI
+from app.api.customer.service_list_api import ServiceListAPI
+from app.api.customer.provider_services_api import ProviderServicesAPI
 from app.api.customer.service_provider_dashboard_api import ServiceProviderDashboardAPI
 from app.api.customer.service_request_api import ServiceRequestAPI
 
@@ -48,9 +49,10 @@ test_api = TestAPI()
 appointment_api = AppointmentAPI()
 doctor_api = DoctorAPI()
 doctor_appointment_api = DoctorAppointmentAPI()
-doctor_service_api = DoctorServiceAPI()
 retailer_api = RetailerAPI()
 service_provider_api = ServiceProviderAPI()
+service_list_api = ServiceListAPI()
+provider_services_api = ProviderServicesAPI()
 service_provider_dashboard_api = ServiceProviderDashboardAPI()
 service_request_api = ServiceRequestAPI()
 
@@ -73,9 +75,10 @@ app.include_router(lab_api.router, tags=["Lap"])
 # app.include_router(appointment_api.router, tags=["Appoinment"])
 app.include_router(doctor_api.router, tags=["Doctor"])
 # app.include_router(doctor_appointment_api.router, tags=["Doctor Appoinment"])
-app.include_router(doctor_service_api.router, tags=["Doctor Service"])
 app.include_router(retailer_api.router, tags=["Retailer"])
 app.include_router(service_provider_api.router, tags=["Service Provider"])
+app.include_router(service_list_api.router, tags=["Service List"])
+app.include_router(provider_services_api.router, tags=["Provider Services"])
 app.include_router(service_provider_dashboard_api.router, tags=["Service Provider Dashboard"])
 app.include_router(service_request_api.router, tags=["Service Request"])
 

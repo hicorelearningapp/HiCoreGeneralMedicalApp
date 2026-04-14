@@ -390,16 +390,27 @@ class TableCreator:
         """
         self._execute(sql, "DoctorAppointment")
 
-    def create_doctor_service_table(self):
+    def create_service_list_table(self):
         sql = """
-        CREATE TABLE IF NOT EXISTS DoctorService (
-            DoctorServiceId INTEGER PRIMARY KEY AUTOINCREMENT,
-            Service TEXT NOT NULL,
-            Amount REAL NOT NULL
+        CREATE TABLE IF NOT EXISTS ServiceList (
+            ServiceListId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ServiceName TEXT NOT NULL,
+            Description TEXT NOT NULL
         );
         """
-        self._execute(sql, "DoctorService")
+        self._execute(sql, "ServiceList")
 
+    def create_provider_services_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS ProviderServices (
+            ProviderServiceId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ServiceProviderId INTEGER NOT NULL,
+            ServiceListId INTEGER NOT NULL,
+            Price REAL NOT NULL,
+            DurationMinutes INTEGER NOT NULL
+        );
+        """
+        self._execute(sql, "ProviderServices")
 
 
     # Retailer Tables
@@ -444,25 +455,20 @@ class TableCreator:
         sql = """
         CREATE TABLE IF NOT EXISTS ServiceProvider (
             ServiceProviderId INTEGER PRIMARY KEY AUTOINCREMENT,
-            ProviderName TEXT NOT NULL,
+            ProviderName TEXT,
             PhotoUrl TEXT,
-            CertificateUrl TEXT,
-            AadhaarOrIdProofUrl TEXT,
-            Address TEXT NOT NULL,
-            Pincode TEXT NOT NULL,
-            PhoneNumber TEXT NOT NULL,
+            Address TEXT,
+            Pincode TEXT,
+            PhoneNumber TEXT,
             Email TEXT NOT NULL,
-            ExperienceYears INTEGER NOT NULL,
-            Gender TEXT NOT NULL,
-            DateOfBirth TEXT NOT NULL,
-            LicenseNumber TEXT,
+            PasswordHash TEXT,
+            ExperienceYears INTEGER,
+            Gender TEXT,
+            DateOfBirth TEXT,
             AvailabilityStatus TEXT DEFAULT 'available',
-            Rating REAL DEFAULT 0.0,
-            IsVerified BOOLEAN DEFAULT 0,
-            IsActive BOOLEAN DEFAULT 1,
-            Password TEXT,
-            Specialization TEXT NOT NULL,
-            ServiceDescription TEXT NOT NULL,
+            Rating REAL DEFAULT 0.0,            
+            Specialization TEXT,
+            ServiceDescription TEXT,
             ServicesOffered TEXT,
             CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
             UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -696,7 +702,7 @@ class TableCreator:
         # # self.create_medicine_info_table()
 
 
-        self.create_customer_notification_table()
+        # self.create_customer_notification_table()
         # self.create_cart_table()
         # self.create_cart_item_table()
         # self.create_prescription_table()
@@ -709,11 +715,12 @@ class TableCreator:
         # # self.create_appointment_table()
 
         # # self.create_doctor_table()
-        # # self.create_doctor_appointment_table()
-        # self.create_doctor_service_table()
+        # # self.create_doctor_appointment_table()        
 
         # self.create_retailer_table()
         # self.create_service_provider_table()
+        # self.create_service_list_table()
+        self.create_provider_services_table()
         # self.create_service_request_table()
         # self.create_notification_preference_table()
 
@@ -721,7 +728,7 @@ class TableCreator:
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("NotificationPreference")
+        # self.remove_table_if_exists("DoctorService")
 
 
         # tables = [

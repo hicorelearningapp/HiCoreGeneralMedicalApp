@@ -48,15 +48,3 @@ class ServiceRequest(Base):
     CreatedAt = Column(DateTime, default=ist_now)
     UpdatedAt = Column(DateTime, default=ist_now)
 
-    # Relationships
-    # Belongs to one Customer
-    customer = relationship(
-        "Customer",
-        foreign_keys=[CustomerId]
-    )
-    
-    # Belongs to one Service Provider (nullable initially)
-    service_provider = relationship(
-        "ServiceProvider",
-        foreign_keys=[ServiceProviderId]
-    )

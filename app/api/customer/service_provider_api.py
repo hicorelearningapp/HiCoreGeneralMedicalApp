@@ -1,201 +1,212 @@
 import os
-from typing import Literal
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Form, File, UploadFile
+
 from ...config import settings
-from ...crud.customer.service_provider_manager import (
-    ServiceProviderManager,
-    ServiceProviderCreate, ServiceProviderUpdate
+from ...crud.customer.service_provider_manager import ServiceProviderManager
+from ...schemas.customer.service_provider_schema import (
+    ServiceProviderCreate,
+    ServiceProviderUpdate,
+    ProviderRegisterSchema,
+    ProviderLoginSchema
 )
 from ...utils.image_uploader import save_picture
 
 
-# --------------------------------------------------
-# Service Provider API
-# --------------------------------------------------
 class ServiceProviderAPI:
     def __init__(self):
         self.router = APIRouter()
-        self.manager = ServiceProviderManager(settings.db_type)
+        self.crud = ServiceProviderManager(settings.db_type)
         self.register_routes()
 
     def register_routes(self):
-        self.router.post("/service-providers")(self.create_service_provider)
-        self.router.get("/service-providers")(self.get_service_providers)
-        self.router.get("/service-providers/{service_provider_id}")(self.get_service_provider_by_id)
-        self.router.put("/service-providers/{service_provider_id}")(self.update_service_provider)
-        self.router.delete("/service-providers/{service_provider_id}")(self.delete_service_provider)
+        self.router.post("/providers/register", response_model=dict)(self.register)
+        self.router.post("/providers/login", response_model=dict)(self.login)
+        self.router.post("/providers", response_model=dict)(self.create_provider)
+        self.router.get("/providers/{provider_id}", response_model=dict)(self.get_provider)
+        self.router.get("/providers", response_model=dict)(self.get_all_providers)
+        self.router.put("/providers/{provider_id}", response_model=dict)(self.update_provider)
+        self.router.delete("/providers/{provider_id}", response_model=dict)(self.delete_provider)
 
-    async def create_service_provider(
+    # -------------------------------
+    # CREATE PROVIDER
+    # -------------------------------
+    async def create_provider(
         self,
-        ProviderName: str = Form(...),
-        Address: str = Form(...),
-        Pincode: str = Form(...),
-        PhoneNumber: str = Form(...),
-        Email: str = Form(...),
-        ExperienceYears: int = Form(...),
-        Gender: str = Form(...),
-        DateOfBirth: str = Form(...),
-        LicenseNumber: str = Form(None),
-        AvailabilityStatus: Literal["available", "unavailable"] = Form("available"),
-        Rating: float = Form(0.0),
-        IsVerified: bool = Form(False),
-        IsActive: bool = Form(True),
-        Password: str = Form(...),
-        Specialization: str = Form(...),
-        ServiceDescription: str = Form(...),
-        ServicesOffered: str = Form(None),
-        Photo: UploadFile = File(None),
-        Certificate: UploadFile = File(None),
-        AadhaarOrIdProof: UploadFile = File(None)
-    ):
-        try:
-            photo_path = await save_picture(Photo, "ServiceProvider") if Photo else None
-            certificate_path = await save_picture(Certificate, "ServiceProvider") if Certificate else None
-            id_proof_path = await save_picture(AadhaarOrIdProof, "ServiceProvider") if AadhaarOrIdProof else None
-
-            obj = ServiceProviderCreate(
-                ProviderName=ProviderName,
-                PhotoUrl=photo_path,
-                CertificateUrl=certificate_path,
-                AadhaarOrIdProofUrl=id_proof_path,
-                Address=Address,
-                Pincode=Pincode,
-                PhoneNumber=PhoneNumber,
-                Email=Email,
-                Password=Password,
-                ExperienceYears=ExperienceYears,
-                Gender=Gender,
-                DateOfBirth=DateOfBirth,
-                LicenseNumber=LicenseNumber,
-                AvailabilityStatus=AvailabilityStatus,
-                Rating=Rating,
-                IsVerified=IsVerified,
-                IsActive=IsActive,
-                Specialization=Specialization,
-                ServiceDescription=ServiceDescription,
-                ServicesOffered=ServicesOffered
-            )
-            return await self.manager.create_service_provider(obj)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-    async def get_service_providers(
-        self,
-        service_name: str = Query(None),
-        pincode: str = Query(None),
-        availability_status: Literal["available", "unavailable"] = Query(None),
-        is_verified: bool = Query(None)
-    ):
-        try:
-            return await self.manager.get_service_providers(
-                service_name=service_name,
-                pincode=pincode,
-                availability_status=availability_status,
-                is_verified=is_verified
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
-    async def get_service_provider_by_id(self, service_provider_id: int):
-        provider = await self.manager.get_service_provider_by_id(service_provider_id)
-        if not provider:
-            raise HTTPException(status_code=404, detail="Service Provider not found")
-        return provider
-
-    async def update_service_provider(
-        self,
-        service_provider_id: int,
         ProviderName: str = Form(None),
+        Email: str = Form(None),
+        Password: str = Form(None),
+        PhoneNumber: str = Form(None),
+        PhotoUrl: UploadFile = File(None),
         Address: str = Form(None),
         Pincode: str = Form(None),
-        PhoneNumber: str = Form(None),
-        Email: str = Form(None),
         ExperienceYears: int = Form(None),
         Gender: str = Form(None),
         DateOfBirth: str = Form(None),
-        LicenseNumber: str = Form(None),
-        AvailabilityStatus: Literal["available", "unavailable"] = Form(None),
+        AvailabilityStatus: str = Form(None),
         Rating: float = Form(None),
-        IsVerified: bool = Form(None),
-        IsActive: bool = Form(None),
-        Password: str = Form(None),
         Specialization: str = Form(None),
         ServiceDescription: str = Form(None),
-        ServicesOffered: str = Form(None),
-        Photo: UploadFile = File(None),
-        Certificate: UploadFile = File(None),
-        AadhaarOrIdProof: UploadFile = File(None)
     ):
         try:
-            old_data = await self.manager.get_service_provider_by_id(service_provider_id)
-            if not old_data:
-                raise HTTPException(status_code=404, detail="Service Provider not found")
+            # Save image
+            photo_path = await save_picture(PhotoUrl, "Provider")
+
+            provider_obj = ServiceProviderCreate(
+                ProviderName=ProviderName,
+                Email=Email,
+                Password=Password,
+                PhoneNumber=PhoneNumber,
+                PhotoUrl=photo_path,
+                Address=Address,
+                Pincode=Pincode,
+                ExperienceYears=ExperienceYears,
+                Gender=Gender,
+                DateOfBirth=DateOfBirth,
+                AvailabilityStatus=AvailabilityStatus,
+                Rating=Rating,
+                Specialization=Specialization,
+                ServiceDescription=ServiceDescription,
+            )
+
+            return await self.crud.create_provider(provider_obj)
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # -------------------------------
+    # GET SINGLE
+    # -------------------------------
+    async def get_provider(self, provider_id: int):
+        try:
+            return await self.crud.get_provider(provider_id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # -------------------------------
+    # GET ALL
+    # -------------------------------
+    async def get_all_providers(self):
+        try:
+            return await self.crud.get_all_providers()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # -------------------------------
+    # UPDATE PROVIDER (FULL FIXED)
+    # -------------------------------
+    async def update_provider(
+        self,
+        provider_id: int,
+        ProviderName: str = Form(None),
+        Email: str = Form(None),
+        Password: str = Form(None),
+        PhoneNumber: str = Form(None),
+        Address: str = Form(None),
+        Pincode: str = Form(None),
+        ExperienceYears: int = Form(None),
+        Gender: str = Form(None),
+        DateOfBirth: str = Form(None),
+        AvailabilityStatus: str = Form(None),
+        Rating: float = Form(None),
+        Specialization: str = Form(None),
+        ServiceDescription: str = Form(None),
+        PhotoUrl: UploadFile = File(None),
+    ):
+        try:
+            # Get existing provider
+            old_provider = await self.crud.get_provider(provider_id)
+            if not old_provider["success"]:
+                raise HTTPException(status_code=404, detail="Provider not found")
 
             update_data = {}
+
+            # Handle normal fields
             for field_name, value in {
                 "ProviderName": ProviderName,
+                "Email": Email,
+                "Password": Password,
+                "PhoneNumber": PhoneNumber,
                 "Address": Address,
                 "Pincode": Pincode,
-                "PhoneNumber": PhoneNumber,
-                "Email": Email,
                 "ExperienceYears": ExperienceYears,
                 "Gender": Gender,
                 "DateOfBirth": DateOfBirth,
-                "LicenseNumber": LicenseNumber,
                 "AvailabilityStatus": AvailabilityStatus,
                 "Rating": Rating,
-                "IsVerified": IsVerified,
-                "IsActive": IsActive,
-                "Password": Password,
                 "Specialization": Specialization,
                 "ServiceDescription": ServiceDescription,
-                "ServicesOffered": ServicesOffered
             }.items():
                 if value is not None:
                     update_data[field_name] = value
 
-            # Handle file uploads
-            if Photo:
-                new_path = await save_picture(Photo, "ServiceProvider")
-                old_path = old_data.PhotoUrl
+            # Handle image update
+            if PhotoUrl:
+                new_path = await save_picture(PhotoUrl, "Provider")
+
+                old_path = old_provider["data"]["PhotoUrl"]
+
                 if old_path:
                     abs_old_path = os.path.normpath(os.path.join(os.getcwd(), old_path))
+
                     if os.path.exists(abs_old_path):
                         os.remove(abs_old_path)
+                        print(f"Deleted old image: {abs_old_path}")
+                    else:
+                        print(f"Old image not found: {abs_old_path}")
+
                 update_data["PhotoUrl"] = new_path
 
-            if Certificate:
-                new_path = await save_picture(Certificate, "ServiceProvider")
-                old_path = old_data.CertificateUrl
-                if old_path:
-                    abs_old_path = os.path.normpath(os.path.join(os.getcwd(), old_path))
-                    if os.path.exists(abs_old_path):
-                        os.remove(abs_old_path)
-                update_data["CertificateUrl"] = new_path
+            return await self.crud.update_provider(
+                provider_id,
+                ServiceProviderUpdate(**update_data)
+            )
 
-            if AadhaarOrIdProof:
-                new_path = await save_picture(AadhaarOrIdProof, "ServiceProvider")
-                old_path = old_data.AadhaarOrIdProofUrl
-                if old_path:
-                    abs_old_path = os.path.normpath(os.path.join(os.getcwd(), old_path))
-                    if os.path.exists(abs_old_path):
-                        os.remove(abs_old_path)
-                update_data["AadhaarOrIdProofUrl"] = new_path
-
-            return await self.manager.update_service_provider(service_provider_id, ServiceProviderUpdate(**update_data))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def delete_service_provider(self, service_provider_id: int):
+    # -------------------------------
+    # DELETE PROVIDER
+    # -------------------------------
+    async def delete_provider(self, provider_id: int):
         try:
-            old_data = await self.manager.get_service_provider_by_id(service_provider_id)
-            if old_data:
-                # Delete associated files
-                for file_path in [old_data.PhotoUrl, old_data.CertificateUrl, old_data.AadhaarOrIdProofUrl]:
-                    if file_path:
-                        abs_path = os.path.normpath(os.path.join(os.getcwd(), file_path))
-                        if os.path.exists(abs_path):
-                            os.remove(abs_path)
-            return await self.manager.delete_service_provider(service_provider_id)
+            provider = await self.crud.get_provider(provider_id)
+            if not provider["success"]:
+                raise HTTPException(status_code=404, detail="Provider not found")
+
+            image_path = provider["data"]["PhotoUrl"]
+
+            result = await self.crud.delete_provider(provider_id)
+
+            # Delete image file
+            if image_path:
+                abs_path = os.path.normpath(os.path.join(os.getcwd(), image_path))
+
+                print("Deleting:", abs_path)
+
+                if os.path.exists(abs_path):
+                    os.remove(abs_path)
+                else:
+                    print("File does not exist:", abs_path)
+
+            return result
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    # -------------------------------
+    # REGISTER
+    # -------------------------------
+    async def register(self, payload: ProviderRegisterSchema):
+        result = await self.crud.register(payload.Email, payload.Password)
+        if not result["success"]:
+            raise HTTPException(status_code=400, detail=result["message"])
+        return result
+
+    # -------------------------------
+    # LOGIN
+    # -------------------------------
+    async def login(self, payload: ProviderLoginSchema):
+        result = await self.crud.login(payload.Email, payload.Password)
+        if not result["success"]:
+            raise HTTPException(status_code=401, detail=result["message"])
+        return result

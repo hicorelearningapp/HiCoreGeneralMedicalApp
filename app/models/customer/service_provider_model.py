@@ -1,51 +1,32 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
-from sqlalchemy.orm import relationship
-from ...utils.timezone import ist_now
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime
+from datetime import datetime
 from .sql_base import Base
 
 
-# -------------------------------------------------
-# Service Provider Model
-# -------------------------------------------------
 class ServiceProvider(Base):
-    __tablename__ = "ServiceProvider"
+    __tablename__ = "serviceprovider"
 
     ServiceProviderId = Column(Integer, primary_key=True, index=True)
-    ProviderName = Column(String, nullable=False)
 
-    PhotoUrl = Column(String, nullable=True)
-    CertificateUrl = Column(String, nullable=True)
-    AadhaarOrIdProofUrl = Column(String, nullable=True)
+    ProviderName = Column(String(255), nullable=True)
+    PhotoUrl = Column(String(500), nullable=True)
 
-    Address = Column(String, nullable=False)
-    Pincode = Column(String, nullable=False)
+    Address = Column(String(500), nullable=True)
+    Pincode = Column(String(20), nullable=True)
 
-    PhoneNumber = Column(String, nullable=False)
-    Email = Column(String, nullable=False)
-    Password = Column(String, nullable=True)
+    PhoneNumber = Column(String(20), nullable=True)
+    Email = Column(String(255), nullable=False, unique=True)
+    PasswordHash = Column(String(255), nullable=True)
 
-    ExperienceYears = Column(Integer, nullable=False)
-    Gender = Column(String, nullable=False)
-    DateOfBirth = Column(String, nullable=False)
-    LicenseNumber = Column(String, nullable=True)
+    ExperienceYears = Column(Integer, nullable=True)
+    Gender = Column(String(20), nullable=True)
+    DateOfBirth = Column(Date, nullable=True)
 
-    AvailabilityStatus = Column(String, nullable=True, default="available")  # available / unavailable / busy
-    Rating = Column(Float, nullable=True, default=0.0)
-    IsVerified = Column(Boolean, nullable=True, default=False)
-    IsActive = Column(Boolean, nullable=True, default=True)
+    AvailabilityStatus = Column(String(50), nullable=True)
+    Rating = Column(Float, nullable=True)
 
-    Specialization = Column(String, nullable=False)
-    ServiceDescription = Column(String, nullable=False)
-    ServicesOffered = Column(Text, nullable=True)  # JSON string of services
+    Specialization = Column(String(255), nullable=True)
+    ServiceDescription = Column(String(1000), nullable=True)
 
-    # Foreign Keys
-
-    CreatedAt = Column(DateTime, default=ist_now)
-    UpdatedAt = Column(DateTime, default=ist_now)
-
-    # Relationships
-    # One Service Provider → Many Service Requests
-    service_requests = relationship(
-        "ServiceRequest",
-        foreign_keys="ServiceRequest.ServiceProviderId"
-    )
+    CreatedAt = Column(DateTime, default=datetime.utcnow)
+    UpdatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

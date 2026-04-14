@@ -1,138 +1,162 @@
-from typing import Literal
-import json
-from ...utils.timezone import ist_now
-from ...db.base.database_manager import DatabaseManager
+from typing import Optional
 from ...utils.logger import get_logger
+from ...db.base.database_manager import DatabaseManager
 from ...models.customer.service_provider_model import ServiceProvider
 from ...schemas.customer.service_provider_schema import (
-    ServiceProviderCreate, ServiceProviderUpdate
+    ServiceProviderCreate,
+    ServiceProviderUpdate,
+    ServiceProviderRead
 )
+import hashlib
 
 logger = get_logger(__name__)
 
 
-# ------------------------------------------------------
-# Service Provider Manager
-# ------------------------------------------------------
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
 class ServiceProviderManager:
     def __init__(self, db_type: str):
         self.db_manager = DatabaseManager(db_type)
 
-    async def create_service_provider(self, data: ServiceProviderCreate):
-        try:
-            await self.db_manager.connect()
-            payload = data.dict()
-            payload["CreatedAt"] = ist_now()
-            payload["UpdatedAt"] = ist_now()
-            obj = await self.db_manager.create(ServiceProvider, payload)
-            return {"success": True, "message": "Service Provider created", "ServiceProviderId": obj.ServiceProviderId}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_service_providers(
-        self,
-        service_name: str = None,
-        pincode: str = None,
-        availability_status: Literal["available", "unavailable", "busy"] = None,
-        is_verified: bool = None
-    ):
-        try:
-            await self.db_manager.connect()
-            filters = {}
-
-            if service_name:
-                # Assuming ServicesOffered is a comma-separated string, check if service_name is in it
-                # For SQLite, we can use LIKE
-                # But since it's text, we'll filter in Python or use a custom query
-                # For simplicity, assume it's comma-separated and use LIKE
-                pass  # Will handle in read method
-
-            if pincode:
-                filters["Pincode"] = pincode
-
-            if availability_status:
-                filters["AvailabilityStatus"] = availability_status
-
-            if is_verified is not None:
-                filters["IsVerified"] = is_verified
-
-            providers = await self.db_manager.read(ServiceProvider, filters)
-            if service_name:                
-                filtered_providers = []
-                for p in providers:
-                    if p.ServicesOffered:
-                        try:
-                            services = json.loads(p.ServicesOffered)
-                            if service_name in services:
-                                filtered_providers.append(p)
-                        except:
-                            # If not JSON, assume comma-separated
-                            if service_name in p.ServicesOffered:
-                                filtered_providers.append(p)
-                providers = filtered_providers
-            return providers
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_service_provider_by_id(self, service_provider_id: int):
-        try:
-            await self.db_manager.connect()
-            rows = await self.db_manager.read(ServiceProvider, {"ServiceProviderId": service_provider_id})
-            return rows[0] if rows else None
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_service_provider_by_service_id(self, service_id: str):
-        try:
-            await self.db_manager.connect()
-            rows = await self.db_manager.read(ServiceProvider, {"ServiceId": service_id})
-            return rows[0] if rows else None
-        finally:
-            await self.db_manager.disconnect()
-
-    async def update_service_provider(self, service_provider_id: int, data: ServiceProviderUpdate):
-        try:
-            await self.db_manager.connect()
-            payload = data.dict(exclude_unset=True)
-            payload["UpdatedAt"] = ist_now()
-            updated = await self.db_manager.update(ServiceProvider, {"ServiceProviderId": service_provider_id}, payload)
-            return {"success": bool(updated)}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def delete_service_provider(self, service_provider_id: int):
-        try:
-            await self.db_manager.connect()
-            deleted = await self.db_manager.delete(ServiceProvider, {"ServiceProviderId": service_provider_id})
-            return {"success": bool(deleted)}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def update_availability_status(
-        self,
-        service_provider_id: int,
-        availability_status: Literal["available", "unavailable", "busy"]
-    ):
-        """
-        Update the availability status of a service provider.
-        """
+    async def create_provider(self, provider: ServiceProviderCreate) -> dict:
         try:
             await self.db_manager.connect()
 
-            payload = {
-                "AvailabilityStatus": availability_status,
-                "UpdatedAt": ist_now()
+            data = provider.dict()
+            plain_password = data.pop("Password", None)
+
+            if plain_password:
+                data["PasswordHash"] = hash_password(plain_password)
+
+            existing = await self.db_manager.read(ServiceProvider, {"Email": data["Email"]})
+            if existing:
+                return {"success": False, "message": "Email already registered"}
+
+            obj = await self.db_manager.create(ServiceProvider, data)
+
+            return {
+                "success": True,
+                "message": "Service provider created successfully",
+                "data": ServiceProviderRead.from_orm(obj).dict()
             }
 
-            updated = await self.db_manager.update(
+        except Exception as e:
+            logger.error(f"Error creating provider: {e}")
+            return {"success": False, "message": str(e)}
+        finally:
+            await self.db_manager.disconnect()
+
+    async def get_provider(self, provider_id: int):
+        try:
+            await self.db_manager.connect()
+            result = await self.db_manager.read(ServiceProvider, {"ServiceProviderId": provider_id})
+
+            if result:
+                return {
+                    "success": True,
+                    "message": "Fetched successfully",
+                    "data": ServiceProviderRead.from_orm(result[0]).dict()
+                }
+
+            return {"success": False, "message": "Not found", "data": None}
+
+        finally:
+            await self.db_manager.disconnect()
+
+    async def get_all_providers(self):
+        try:
+            await self.db_manager.connect()
+            result = await self.db_manager.read(ServiceProvider)
+
+            return {
+                "success": True,
+                "message": "Fetched successfully",
+                "data": [ServiceProviderRead.from_orm(p).dict() for p in result]
+            }
+
+        finally:
+            await self.db_manager.disconnect()
+
+    async def update_provider(self, provider_id: int, data: ServiceProviderUpdate):
+        try:
+            await self.db_manager.connect()
+
+            update_data = data.dict(exclude_unset=True)
+
+            if "Password" in update_data:
+                password = update_data.pop("Password")
+                if password:
+                    update_data["PasswordHash"] = hash_password(password)
+
+            rowcount = await self.db_manager.update(
                 ServiceProvider,
-                {"ServiceProviderId": service_provider_id},
-                payload
+                {"ServiceProviderId": provider_id},
+                update_data
             )
 
             return {
-                "success": bool(updated),
-                "message": f"Availability status updated to {availability_status}" if updated else "Service Provider not found"
+                "success": bool(rowcount),
+                "message": "Updated" if rowcount else "No changes",
+                "data": {"rows_affected": rowcount}
             }
+
         finally:
             await self.db_manager.disconnect()
+
+    async def delete_provider(self, provider_id: int):
+        try:
+            await self.db_manager.connect()
+            rowcount = await self.db_manager.delete(ServiceProvider, {"ServiceProviderId": provider_id})
+
+            return {
+                "success": bool(rowcount),
+                "message": "Deleted" if rowcount else "Not found",
+                "data": {"rows_affected": rowcount}
+            }
+
+        finally:
+            await self.db_manager.disconnect()
+
+    async def register(self, email: str, password: str):
+        await self.db_manager.connect()
+
+        existing = await self.db_manager.read(ServiceProvider, {"Email": email})
+        if existing:
+            await self.db_manager.disconnect()
+            return {"success": False, "message": "Email already registered"}
+
+        provider = await self.db_manager.create(
+            ServiceProvider,
+            {
+                "Email": email,
+                "PasswordHash": hash_password(password),
+            },
+        )
+
+        await self.db_manager.disconnect()
+
+        return {
+            "success": True,
+            "message": "Registered successfully",
+            "data": {"ServiceProviderId": provider.ServiceProviderId, "Email": provider.Email},
+        }
+
+    async def login(self, email: str, password: str):
+        await self.db_manager.connect()
+
+        result = await self.db_manager.read(ServiceProvider, {"Email": email})
+        if not result:
+            return {"success": False, "message": "Invalid credentials"}
+
+        provider = result[0]
+
+        if provider.PasswordHash != hash_password(password):
+            return {"success": False, "message": "Invalid credentials"}
+
+        return {
+            "success": True,
+            "message": "Login successful",
+            "data": {"ServiceProviderId": provider.ServiceProviderId, "Email": provider.Email},
+        }

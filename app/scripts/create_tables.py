@@ -395,6 +395,8 @@ class TableCreator:
         CREATE TABLE IF NOT EXISTS ServiceList (
             ServiceListId INTEGER PRIMARY KEY AUTOINCREMENT,
             ServiceName TEXT NOT NULL,
+            Price REAL NOT NULL,
+            DurationMinutes INTEGER NOT NULL,
             Description TEXT NOT NULL
         );
         """
@@ -482,33 +484,25 @@ class TableCreator:
     def create_service_request_table(self):
         sql = """
         CREATE TABLE IF NOT EXISTS ServiceRequest (
-            RequestId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ServiceRequestId INTEGER PRIMARY KEY AUTOINCREMENT,
             CustomerId INTEGER NOT NULL,
             ServiceProviderId INTEGER,
-            ServiceName TEXT MOT NULL,
+            ServiceListId INTEGER,
+            ProviderServiceId INTEGER,
             CustomerName TEXT NOT NULL,
             CustomerPhone TEXT NOT NULL,
             CustomerAddress TEXT NOT NULL,
-            PreferredDate DATE,
-            PreferredTime TEXT,
-            RequestDescription TEXT,
             Pincode TEXT,
+            PreferredDate DATE,
+            PreferredStartTime TEXT,
+            PreferredEndTime TEXT,
+            RequestDescription TEXT,
             Status TEXT DEFAULT 'pending',
-            AssignedAt DATETIME,
-            AcceptedAt DATETIME,
-            CompletedAt DATETIME,
-            CancelledAt DATETIME,
-            CustomerNotes TEXT,
-            ProviderNotes TEXT,
-            EstimatedPrice REAL,
             FinalPrice REAL,
-            PaymentStatus TEXT DEFAULT 'pending',
             AssignmentMode TEXT DEFAULT 'random',
             NotificationPreference TEXT DEFAULT 'both',
             CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (CustomerId) REFERENCES customer(CustomerId),
-            FOREIGN KEY (ServiceProviderId) REFERENCES ServiceProvider(ServiceProviderId)
+            UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         """
         self._execute(sql, "ServiceRequest")
@@ -720,15 +714,15 @@ class TableCreator:
         # self.create_retailer_table()
         # self.create_service_provider_table()
         # self.create_service_list_table()
-        self.create_provider_services_table()
-        # self.create_service_request_table()
+        # self.create_provider_services_table()
+        self.create_service_request_table()
         # self.create_notification_preference_table()
 
         
 
         # self.add_column_if_not_exists("RetailerOrders", "RetailerName", "TEXT")
         # self.remove_column_if_exists("RetailerOrders", "DistributorrName")
-        # self.remove_table_if_exists("DoctorService")
+        # self.remove_table_if_exists("ServiceRequest")
 
 
         # tables = [

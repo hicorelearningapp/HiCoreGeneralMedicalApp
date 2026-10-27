@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from .sql_base import Base
 
 
@@ -7,4 +7,6 @@ class ServiceList(Base):
 
     ServiceListId = Column(Integer, primary_key=True, index=True)
     ServiceName = Column(String(255), nullable=False)
+    Price = Column(Float, nullable=True)
+    DurationMinutes = Column(Integer, nullable=True)
     Description = Column(String(1000), nullable=True)

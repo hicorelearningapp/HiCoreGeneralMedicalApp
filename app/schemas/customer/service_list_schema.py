@@ -4,6 +4,8 @@ from typing import Optional
 
 class ServiceListBase(BaseModel):
     ServiceName: Optional[str] = None
+    Price: Optional[float] = None
+    DurationMinutes: Optional[int] = None
     Description: Optional[str] = None
 
     class Config:
@@ -11,7 +13,7 @@ class ServiceListBase(BaseModel):
 
 
 class ServiceListCreate(ServiceListBase):
-    ServiceName: str   # required for create
+    ServiceName: str
 
 
 class ServiceListUpdate(ServiceListBase):

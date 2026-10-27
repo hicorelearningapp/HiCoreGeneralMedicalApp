@@ -1,529 +1,282 @@
-from typing import Literal
-from ...utils.timezone import ist_now
-from ...db.base.database_manager import DatabaseManager
 from ...utils.logger import get_logger
+from ...db.base.database_manager import DatabaseManager
 from ...models.customer.service_request_model import ServiceRequest
 from ...models.customer.service_provider_model import ServiceProvider
-from ...schemas.customer.service_request_schema import ServiceRequestCreate, ServiceRequestUpdate
-from ...utils.notification_service import service_request_notifications
-import random
+from ...models.customer.service_list_model import ServiceList
+from ...models.customer.provider_services_model import ProviderServices
+
+from ...schemas.customer.service_request_schema import (
+    ServiceRequestCreate,
+    ServiceRequestUpdate,
+    ServiceRequestRead
+)
 
 logger = get_logger(__name__)
 
 
-# ------------------------------------------------------
-# Service Request Manager
-# ------------------------------------------------------
 class ServiceRequestManager:
     def __init__(self, db_type: str):
         self.db_manager = DatabaseManager(db_type)
 
-    async def create_service_request(self, data: ServiceRequestCreate):
-        try:
-            await self.db_manager.connect()
-            payload = data.dict()
-            payload["CreatedAt"] = ist_now()
-            payload["UpdatedAt"] = ist_now()
-            obj = await self.db_manager.create(ServiceRequest, payload)
+    # -------------------------------
+    # ATTACH FULL DETAILS
+    # -------------------------------
+    async def _attach_full_details(self, request_obj):
+        data = ServiceRequestRead.from_orm(request_obj).dict()
 
-            # Trigger notification for request created
-            try:
-                await service_request_notifications.notify_request_created(
-                    phone_number=data.CustomerPhone,
-                    request_id=obj.RequestId,
-                    service_name=data.ServiceName or "Service Request",
-                    preference=data.NotificationPreference
-                )
-                logger.info(f"Notification triggered for request #{obj.RequestId} created")
-            except Exception as notify_err:
-                logger.warning(f"Failed to send notification for request #{obj.RequestId}: {notify_err}")
-
-            return {"success": True, "message": "Service Request created", "RequestId": obj.RequestId}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_service_requests_by_customer(self, customer_id: int):
-        try:
-            await self.db_manager.connect()
-            return await self.db_manager.read(ServiceRequest, {"CustomerId": customer_id})
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_service_request_by_id(self, request_id: int):
-        try:
-            await self.db_manager.connect()
-            rows = await self.db_manager.read(ServiceRequest, {"RequestId": request_id})
-            return rows[0] if rows else None
-        finally:
-            await self.db_manager.disconnect()
-
-    async def update_service_request(self, request_id: int, data: ServiceRequestUpdate):
-        try:
-            await self.db_manager.connect()
-            payload = data.dict(exclude_unset=True)
-            payload["UpdatedAt"] = ist_now()
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-            return {"success": bool(updated)}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def cancel_service_request(self, request_id: int):
-        try:
-            await self.db_manager.connect()
-            payload = {
-                "Status": "cancelled",
-                "CancelledAt": ist_now(),
-                "UpdatedAt": ist_now()
-            }
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            # Trigger notification for cancelled request
-            if updated:
-                try:
-                    request = await self.get_service_request_by_id(request_id)
-                    if request:
-                        await service_request_notifications.notify_request_cancelled(
-                            phone_number=request.CustomerPhone,
-                            request_id=request_id,
-                            preference=request.NotificationPreference
-                        )
-                        logger.info(f"Notification triggered for request #{request_id} cancelled")
-                except Exception as notify_err:
-                    logger.warning(f"Failed to send cancellation notification: {notify_err}")
-
-            return {"success": bool(updated), "message": "Request cancelled" if updated else "Request not found"}
-        finally:
-            await self.db_manager.disconnect()
-
-    async def assign_service_provider(
-        self,
-        request_id: int,
-        service_provider_id: int,
-        assignment_mode: Literal["random", "visible_profile"] = "random"
-    ):
-        try:
-            await self.db_manager.connect()
-
-            # Verify the service provider exists and is eligible
-            provider_rows = await self.db_manager.read(
+        # Provider
+        provider_data = None
+        if request_obj.ServiceProviderId:
+            provider = await self.db_manager.read(
                 ServiceProvider,
-                {"ServiceProviderId": service_provider_id}
+                {"ServiceProviderId": request_obj.ServiceProviderId}
+            )
+            if provider:
+                p = provider[0]
+                provider_data = {
+                    "ProviderName": p.ProviderName,
+                    "Address": p.Address,
+                    "Pincode": p.Pincode,
+                    "PhoneNumber": p.PhoneNumber,
+                    "Email": p.Email,
+                    "ExperienceYears": p.ExperienceYears,
+                    "Rating": p.Rating,
+                }
+
+        # ServiceList
+        service_data = None
+        if request_obj.ServiceListId:
+            service = await self.db_manager.read(
+                ServiceList,
+                {"ServiceListId": request_obj.ServiceListId}
+            )
+            if service:
+                s = service[0]
+                service_data = {
+                    "ServiceName": s.ServiceName,
+                    "Description": s.Description,
+                    "Price": s.Price,
+                    "DurationMinutes": s.DurationMinutes,
+                }
+
+        # ProviderServices
+        provider_service_data = None
+        if request_obj.ProviderServiceId:
+            ps = await self.db_manager.read(
+                ProviderServices,
+                {"ProviderServiceId": request_obj.ProviderServiceId}
+            )
+            if ps:
+                p = ps[0]
+                provider_service_data = {
+                    "Price": p.Price,
+                    "DurationMinutes": p.DurationMinutes,
+                    "ServiceListId": p.ServiceListId,
+                    "ServiceProviderId": p.ServiceProviderId
+                }
+
+        data["ProviderInfo"] = provider_data
+        data["ServiceInfo"] = service_data
+        data["ProviderServiceInfo"] = provider_service_data
+
+        return data
+
+    # -------------------------------
+    # CREATE
+    # -------------------------------
+    async def create(self, payload: ServiceRequestCreate):
+        try:
+            await self.db_manager.connect()
+            obj = await self.db_manager.create(ServiceRequest, payload.dict())
+
+            return {
+                "success": True,
+                "message": "Request created",
+                "data": await self._attach_full_details(obj)
+            }
+
+        except Exception as e:
+            logger.error(e)
+            return {"success": False, "message": str(e)}
+        finally:
+            await self.db_manager.disconnect()
+
+    # -------------------------------
+    # GET SINGLE
+    # -------------------------------
+    async def get(self, id: int):
+        try:
+            await self.db_manager.connect()
+
+            result = await self.db_manager.read(ServiceRequest, {"ServiceRequestId": id})
+
+            if result:
+                return {
+                    "success": True,
+                    "message": "Fetched",
+                    "data": await self._attach_full_details(result[0])
+                }
+
+            return {"success": False, "message": "Not found", "data": None}
+
+        finally:
+            await self.db_manager.disconnect()
+
+    # -------------------------------
+    # GET ALL
+    # -------------------------------
+    async def get_all(self):
+        try:
+            await self.db_manager.connect()
+
+            result = await self.db_manager.read(ServiceRequest)
+
+            data = []
+            for r in result:
+                data.append(await self._attach_full_details(r))
+
+            return {"success": True, "message": "Fetched", "data": data}
+
+        finally:
+            await self.db_manager.disconnect()
+
+    # -------------------------------
+    # UPDATE
+    # -------------------------------
+    async def update(self, id: int, payload: ServiceRequestUpdate):
+        try:
+            await self.db_manager.connect()
+
+            update_data = payload.dict(exclude_unset=True)
+
+            rowcount = await self.db_manager.update(
+                ServiceRequest,
+                {"ServiceRequestId": id},
+                update_data
             )
 
-            if not provider_rows:
-                return {"success": False, "message": "Service Provider not found"}
-
-            provider = provider_rows[0]
-
-            # Check eligibility criteria
-            if not provider.IsActive:
-                return {"success": False, "message": "Service Provider is not active"}
-
-            if provider.AvailabilityStatus != "available":
-                return {"success": False, "message": "Service Provider is not available"}
-
-            if not provider.IsVerified:
-                return {"success": False, "message": "Service Provider is not verified"}
-
-            # Update the request with assignment
-            payload = {
-                "ServiceProviderId": service_provider_id,
-                "Status": "assigned",
-                "AssignedAt": ist_now(),
-                "AssignmentMode": assignment_mode,
-                "UpdatedAt": ist_now()
+            return {
+                "success": bool(rowcount),
+                "message": "Updated" if rowcount else "No changes",
+                "data": {"rows_affected": rowcount}
             }
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            if updated:
-                # Trigger notification for provider assigned
-                try:
-                    request = await self.get_service_request_by_id(request_id)
-                    if request:
-                        await service_request_notifications.notify_provider_assigned(
-                            phone_number=request.CustomerPhone,
-                            request_id=request_id,
-                            provider_name=provider.ProviderName,
-                            service_name=request.ServiceName or "Service",
-                            preference=request.NotificationPreference
-                        )
-                        logger.info(f"Notification triggered for provider assigned to request #{request_id}")
-                except Exception as notify_err:
-                    logger.warning(f"Failed to send assignment notification: {notify_err}")
-
-                return {
-                    "success": True,
-                    "message": "Service Provider assigned successfully",
-                    "ServiceProviderId": service_provider_id,
-                    "AssignmentMode": assignment_mode
-                }
-            else:
-                return {"success": False, "message": "Failed to assign Service Provider"}
 
         finally:
             await self.db_manager.disconnect()
 
-    async def auto_assign_provider(self, request_id: int, pincode: str = None, service_name: str = None):
-        """
-        Auto-assign an available provider using random assignment model.
-        Returns the assigned provider or None if no provider is available.
-        """
+    # -------------------------------
+    # DELETE
+    # -------------------------------
+    async def delete(self, id: int):
         try:
             await self.db_manager.connect()
 
-            # Build filters for eligible providers
-            filters = {
-                "IsActive": True,
-                "AvailabilityStatus": "available",
-                "IsVerified": True
-            }
-
-            if pincode:
-                filters["Pincode"] = pincode
-
-            # Get eligible providers
-            eligible_providers = await self.db_manager.read(ServiceProvider, filters)
-
-            if service_name:
-                import json
-                filtered_providers = []
-                for p in eligible_providers:
-                    if p.ServicesOffered:
-                        try:
-                            services = json.loads(p.ServicesOffered)
-                            if service_name in services:
-                                filtered_providers.append(p)
-                        except:
-                            # If not JSON, assume comma-separated
-                            if service_name in p.ServicesOffered:
-                                filtered_providers.append(p)
-                eligible_providers = filtered_providers
-
-            if not eligible_providers:
-                return {
-                    "success": False,
-                    "message": "No eligible service providers available",
-                    "RequestStatus": "pending"
-                }
-
-            # Random assignment
-            selected_provider = random.choice(eligible_providers)
-
-            # Update the request
-            payload = {
-                "ServiceProviderId": selected_provider.ServiceProviderId,
-                "Status": "assigned",
-                "AssignedAt": ist_now(),
-                "AssignmentMode": "random",
-                "UpdatedAt": ist_now()
-            }
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            if updated:
-                # Trigger notification for provider assigned (auto-assign)
-                try:
-                    request = await self.get_service_request_by_id(request_id)
-                    if request:
-                        await service_request_notifications.notify_provider_assigned(
-                            phone_number=request.CustomerPhone,
-                            request_id=request_id,
-                            provider_name=selected_provider.ProviderName,
-                            service_name=request.ServiceName or "Service",
-                            preference=request.NotificationPreference
-                        )
-                        logger.info(f"Notification triggered for auto-assigned provider on request #{request_id}")
-                except Exception as notify_err:
-                    logger.warning(f"Failed to send auto-assignment notification: {notify_err}")
-
-                return {
-                    "success": True,
-                    "message": "Service Provider auto-assigned successfully",
-                    "ServiceProviderId": selected_provider.ServiceProviderId,
-                    "ProviderName": selected_provider.ProviderName,
-                    "AssignmentMode": "random"
-                }
-            else:
-                return {"success": False, "message": "Failed to auto-assign Service Provider"}
-
-        finally:
-            await self.db_manager.disconnect()
-
-    async def get_available_providers(self, pincode: str = None, service_name: str = None):
-        """
-        Get all available providers for visible profile booking model.
-        """
-        try:
-            await self.db_manager.connect()
-
-            filters = {
-                "IsActive": True,
-                "AvailabilityStatus": "available",
-                "IsVerified": True
-            }
-
-            if pincode:
-                filters["Pincode"] = pincode
-
-            providers = await self.db_manager.read(ServiceProvider, filters)
-
-            if service_name:
-                import json
-                filtered_providers = []
-                for p in providers:
-                    if p.ServicesOffered:
-                        try:
-                            services = json.loads(p.ServicesOffered)
-                            if service_name in services:
-                                filtered_providers.append(p)
-                        except:
-                            # If not JSON, assume comma-separated
-                            if service_name in p.ServicesOffered:
-                                filtered_providers.append(p)
-                providers = filtered_providers
-
-            return providers
-
-        finally:
-            await self.db_manager.disconnect()
-
-    async def update_request_status(self, request_id: int, status: Literal["pending", "assigned", "accepted", "in_progress", "completed", "cancelled", "rejected"]):
-        """
-        Update the status of a service request with appropriate timestamp.
-        """
-        try:
-            await self.db_manager.connect()
-
-            payload = {
-                "Status": status,
-                "UpdatedAt": ist_now()
-            }
-
-            # Set appropriate timestamp based on status
-            if status == "accepted":
-                payload["AcceptedAt"] = ist_now()
-            elif status == "completed":
-                payload["CompletedAt"] = ist_now()
-            elif status == "cancelled":
-                payload["CancelledAt"] = ist_now()
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
+            rowcount = await self.db_manager.delete(
+                ServiceRequest,
+                {"ServiceRequestId": id}
+            )
 
             return {
-                "success": bool(updated),
-                "message": f"Request status updated to {status}" if updated else "Request not found"
+                "success": bool(rowcount),
+                "message": "Deleted" if rowcount else "Not found",
+                "data": {"rows_affected": rowcount}
             }
 
         finally:
             await self.db_manager.disconnect()
 
-    # ------------------------------------------------------
-    # Provider-specific methods for "My Services"
-    # ------------------------------------------------------
-    async def get_service_requests_by_provider(self, provider_id: int, status: str = None):
-        """
-        Get all service requests assigned to a specific provider.
-        Used for 'My Services' dashboard.
-        """
-        try:
-            await self.db_manager.connect()
-            filters = {"ServiceProviderId": provider_id}
-
-            if status:
-                filters["Status"] = status
-
-            return await self.db_manager.read(ServiceRequest, filters)
-        finally:
-            await self.db_manager.disconnect()
-
-    async def accept_service_request(self, request_id: int, provider_id: int):
-        """
-        Provider accepts an assigned service request.
-        """
+    # -------------------------------
+    # UPDATE STATUS
+    # -------------------------------
+    async def update_status(self, id: int, status: str):
         try:
             await self.db_manager.connect()
 
-            # Verify the request is assigned to this provider
-            request = await self.get_service_request_by_id(request_id)
-            if not request:
-                return {"success": False, "message": "Service request not found"}
-
-            if request.ServiceProviderId != provider_id:
-                return {"success": False, "message": "Request not assigned to this provider"}
-
-            if request.Status != "assigned":
-                return {"success": False, "message": f"Cannot accept request with status: {request.Status}"}
-
-            payload = {
-                "Status": "accepted",
-                "AcceptedAt": ist_now(),
-                "UpdatedAt": ist_now()
-            }
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            # Trigger notification for provider accepted
-            if updated:
-                try:
-                    await service_request_notifications.notify_provider_accepted(
-                        phone_number=request.CustomerPhone,
-                        request_id=request_id,
-                        provider_name=request.ProviderName if 'provider' in locals() else "Provider",
-                        preference=request.NotificationPreference
-                    )
-                    logger.info(f"Notification triggered for provider accepted on request #{request_id}")
-                except Exception as notify_err:
-                    logger.warning(f"Failed to send acceptance notification: {notify_err}")
+            rowcount = await self.db_manager.update(
+                ServiceRequest,
+                {"ServiceRequestId": id},
+                {"Status": status}
+            )
 
             return {
-                "success": bool(updated),
-                "message": "Service request accepted" if updated else "Failed to accept request"
+                "success": bool(rowcount),
+                "message": f"Status updated to {status}",
+                "data": {"rows_affected": rowcount}
             }
+
         finally:
             await self.db_manager.disconnect()
 
-    async def reject_service_request(self, request_id: int, provider_id: int, provider_notes: str = None):
-        """
-        Provider rejects an assigned service request.
-        """
+    # -------------------------------
+    # GET BY PROVIDER
+    # -------------------------------
+    async def get_by_provider(self, provider_id: int):
+        await self.db_manager.connect()
+
+        result = await self.db_manager.read(
+            ServiceRequest,
+            {"ServiceProviderId": provider_id}
+        )
+
+        data = [await self._attach_full_details(r) for r in result]
+
+        return {"success": True, "message": "Provider requests", "data": data}
+
+    # -------------------------------
+    # GET BY CUSTOMER
+    # -------------------------------
+    async def get_by_customer(self, customer_id: int):
+        await self.db_manager.connect()
+
+        result = await self.db_manager.read(
+            ServiceRequest,
+            {"CustomerId": customer_id}
+        )
+
+        data = [await self._attach_full_details(r) for r in result]
+
+        return {"success": True, "message": "Customer requests", "data": data}
+
+    # -------------------------------
+    # AUTO ASSIGN (SMART)
+    # -------------------------------
+    async def auto_assign(self, pincode: str, service_list_id: int):
         try:
             await self.db_manager.connect()
 
-            # Verify the request is assigned to this provider
-            request = await self.get_service_request_by_id(request_id)
-            if not request:
-                return {"success": False, "message": "Service request not found"}
+            providers = await self.db_manager.read(
+                ServiceProvider,
+                {"Pincode": pincode}
+            )
 
-            if request.ServiceProviderId != provider_id:
-                return {"success": False, "message": "Request not assigned to this provider"}
+            matched = []
 
-            if request.Status not in ["assigned", "accepted"]:
-                return {"success": False, "message": f"Cannot reject request with status: {request.Status}"}
+            for provider in providers:
+                check = await self.db_manager.read(
+                    ProviderServices,
+                    {
+                        "ServiceProviderId": provider.ServiceProviderId,
+                        "ServiceListId": service_list_id
+                    }
+                )
 
-            payload = {
-                "Status": "rejected",
-                "ServiceProviderId": None,  # Unassign the provider
-                "ProviderNotes": provider_notes,
-                "UpdatedAt": ist_now()
-            }
+                if check:
+                    matched.append({
+                        "ServiceProviderId": provider.ServiceProviderId,
+                        "ProviderName": provider.ProviderName,
+                        "PhoneNumber": provider.PhoneNumber,
+                        "Pincode": provider.Pincode
+                    })
 
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            return {
-                "success": bool(updated),
-                "message": "Service request rejected" if updated else "Failed to reject request"
-            }
-        finally:
-            await self.db_manager.disconnect()
-
-    async def start_service(self, request_id: int, provider_id: int):
-        """
-        Provider starts the service (changes status to in_progress).
-        """
-        try:
-            await self.db_manager.connect()
-
-            # Verify the request is assigned to this provider
-            request = await self.get_service_request_by_id(request_id)
-            if not request:
-                return {"success": False, "message": "Service request not found"}
-
-            if request.ServiceProviderId != provider_id:
-                return {"success": False, "message": "Request not assigned to this provider"}
-
-            if request.Status != "accepted":
-                return {"success": False, "message": f"Cannot start service with status: {request.Status}. Must be accepted first."}
-
-            payload = {
-                "Status": "in_progress",
-                "UpdatedAt": ist_now()
-            }
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
+            if not matched:
+                return {"success": False, "message": "No matching provider"}
 
             return {
-                "success": bool(updated),
-                "message": "Service started" if updated else "Failed to start service"
-            }
-        finally:
-            await self.db_manager.disconnect()
-
-    async def complete_service(self, request_id: int, provider_id: int, final_price: float = None):
-        """
-        Provider completes the service.
-        """
-        try:
-            await self.db_manager.connect()
-
-            # Verify the request is assigned to this provider
-            request = await self.get_service_request_by_id(request_id)
-            if not request:
-                return {"success": False, "message": "Service request not found"}
-
-            if request.ServiceProviderId != provider_id:
-                return {"success": False, "message": "Request not assigned to this provider"}
-
-            if request.Status != "in_progress":
-                return {"success": False, "message": f"Cannot complete service with status: {request.Status}. Must be in_progress first."}
-
-            payload = {
-                "Status": "completed",
-                "CompletedAt": ist_now(),
-                "UpdatedAt": ist_now()
+                "success": True,
+                "message": "Auto assigned",
+                "data": matched[0],
+                "all": matched
             }
 
-            if final_price is not None:
-                payload["FinalPrice"] = final_price
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            # Trigger notification for service completed
-            if updated:
-                try:
-                    await service_request_notifications.notify_service_completed(
-                        phone_number=request.CustomerPhone,
-                        request_id=request_id,
-                        provider_name=request.ProviderName if hasattr(request, 'ProviderName') else "Provider",
-                        final_price=final_price,
-                        preference=request.NotificationPreference
-                    )
-                    logger.info(f"Notification triggered for service completed on request #{request_id}")
-                except Exception as notify_err:
-                    logger.warning(f"Failed to send completion notification: {notify_err}")
-
-            return {
-                "success": bool(updated),
-                "message": "Service completed" if updated else "Failed to complete service"
-            }
-        finally:
-            await self.db_manager.disconnect()
-
-    async def update_provider_notes(self, request_id: int, provider_id: int, provider_notes: str):
-        """
-        Update provider notes for a service request.
-        """
-        try:
-            await self.db_manager.connect()
-
-            # Verify the request is assigned to this provider
-            request = await self.get_service_request_by_id(request_id)
-            if not request:
-                return {"success": False, "message": "Service request not found"}
-
-            if request.ServiceProviderId != provider_id:
-                return {"success": False, "message": "Request not assigned to this provider"}
-
-            payload = {
-                "ProviderNotes": provider_notes,
-                "UpdatedAt": ist_now()
-            }
-
-            updated = await self.db_manager.update(ServiceRequest, {"RequestId": request_id}, payload)
-
-            return {
-                "success": bool(updated),
-                "message": "Provider notes updated" if updated else "Failed to update notes"
-            }
         finally:
             await self.db_manager.disconnect()

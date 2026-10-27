@@ -79,7 +79,7 @@ app.include_router(retailer_api.router, tags=["Retailer"])
 app.include_router(service_provider_api.router, tags=["Service Provider"])
 app.include_router(service_list_api.router, tags=["Service List"])
 app.include_router(provider_services_api.router, tags=["Provider Services"])
-app.include_router(service_provider_dashboard_api.router, tags=["Service Provider Dashboard"])
+# app.include_router(service_provider_dashboard_api.router, tags=["Service Provider Dashboard"])
 app.include_router(service_request_api.router, tags=["Service Request"])
 
 

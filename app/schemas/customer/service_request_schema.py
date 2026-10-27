@@ -1,44 +1,29 @@
-from datetime import datetime, date
-from ...utils.timezone import ist_now
-from typing import Optional, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import Optional
+from datetime import date, time, datetime
 
 
-# -------------------------
-# Service Request Schemas
-# -------------------------
 class ServiceRequestBase(BaseModel):
-    CustomerId: int
+    CustomerId: Optional[int] = None
     ServiceProviderId: Optional[int] = None
-    ServiceName: Optional[str] = None
+    ServiceListId: Optional[int] = None
+    ProviderServiceId: Optional[int] = None
 
-    CustomerName: str
-    CustomerPhone: str
-    CustomerAddress: str
+    CustomerName: Optional[str] = None
+    CustomerPhone: Optional[str] = None
+    CustomerAddress: Optional[str] = None
     Pincode: Optional[str] = None
 
     PreferredDate: Optional[date] = None
-    PreferredTime: Optional[str] = None
+    PreferredStartTime: Optional[str] = None
+    PreferredEndTime: Optional[str] = None
+
     RequestDescription: Optional[str] = None
+    Status: Optional[str] = "pending"
 
-    Status: Literal["pending", "assigned", "accepted", "in_progress", "completed", "cancelled", "rejected"] = "pending"
-
-    AssignedAt: Optional[datetime] = None
-    AcceptedAt: Optional[datetime] = None
-    CompletedAt: Optional[datetime] = None
-    CancelledAt: Optional[datetime] = None
-
-    CustomerNotes: Optional[str] = None
-    ProviderNotes: Optional[str] = None
-    Pincode: Optional[str] = None
-
-    EstimatedPrice: Optional[float] = None
     FinalPrice: Optional[float] = None
-    PaymentStatus: Literal["pending", "paid", "failed"] = "pending"
-
-    AssignmentMode: Literal["random", "visible_profile"] = "random"
-
-    NotificationPreference: Literal["whatsapp", "sms", "both"] = "both"
+    AssignmentMode: Optional[str] = None
+    NotificationPreference: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -48,36 +33,11 @@ class ServiceRequestCreate(ServiceRequestBase):
     pass
 
 
-class ServiceRequestUpdate(BaseModel):
-    ServiceProviderId: Optional[int] = None
-    Status: Optional[Literal["pending", "assigned", "accepted", "in_progress", "completed", "cancelled", "rejected"]] = None
-    AssignedAt: Optional[datetime] = None
-    AcceptedAt: Optional[datetime] = None
-    CompletedAt: Optional[datetime] = None
-    CancelledAt: Optional[datetime] = None
-    CustomerNotes: Optional[str] = None
-    ProviderNotes: Optional[str] = None
-    Pincode: Optional[str] = None
-    EstimatedPrice: Optional[float] = None
-    FinalPrice: Optional[float] = None
-    PaymentStatus: Optional[Literal["pending", "paid", "failed"]] = None
-    PreferredDate: Optional[date] = None
-    PreferredTime: Optional[str] = None
-    RequestDescription: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+class ServiceRequestUpdate(ServiceRequestBase):
+    pass
 
 
 class ServiceRequestRead(ServiceRequestBase):
-    RequestId: int
-    CreatedAt: datetime = Field(default_factory=ist_now)
-    UpdatedAt: datetime = Field(default_factory=ist_now)
-
-
-# -------------------------
-# Assignment Request Schema
-# -------------------------
-class AssignProviderRequest(BaseModel):
-    ServiceProviderId: int
-    AssignmentMode: Literal["random", "visible_profile"] = "random"
+    ServiceRequestId: int
+    CreatedAt: Optional[datetime]
+    UpdatedAt: Optional[datetime]

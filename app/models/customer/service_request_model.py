@@ -1,50 +1,35 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date, Text, Boolean, ForeignKey
-from sqlalchemy.orm import relationship
-from ...utils.timezone import ist_now
+from sqlalchemy import Column, Integer, String, Date, Time, Float, DateTime
+from datetime import datetime
 from .sql_base import Base
 
 
-# -------------------------------------------------
-# Service Request Model
-# -------------------------------------------------
 class ServiceRequest(Base):
-    __tablename__ = "ServiceRequest"
+    __tablename__ = "servicerequest"
 
-    RequestId = Column(Integer, primary_key=True, index=True)
-    
-    # Foreign Keys
-    CustomerId = Column(Integer, ForeignKey("customer.CustomerId"), nullable=False)
-    ServiceProviderId = Column(Integer, ForeignKey("ServiceProvider.ServiceProviderId"), nullable=True)
-    
-    ServiceName = Column(String, nullable=True)
+    ServiceRequestId = Column(Integer, primary_key=True, index=True)
 
-    CustomerName = Column(String, nullable=False)
-    CustomerPhone = Column(String, nullable=False)
-    CustomerAddress = Column(Text, nullable=False)
+    CustomerId = Column(Integer, nullable=True)
+    ServiceProviderId = Column(Integer, nullable=True)
+
+    ServiceListId = Column(Integer, nullable=True)
+    ProviderServiceId = Column(Integer, nullable=True)
+
+    CustomerName = Column(String(255), nullable=True)
+    CustomerPhone = Column(String(20), nullable=True)
+    CustomerAddress = Column(String(500), nullable=True)
+    Pincode = Column(String(20), nullable=True)
 
     PreferredDate = Column(Date, nullable=True)
-    PreferredTime = Column(String, nullable=True)
-    RequestDescription = Column(Text, nullable=True)
-    Pincode = Column(String, nullable=True)
+    PreferredStartTime = Column(String(20), nullable=True)
+    PreferredEndTime = Column(String(20), nullable=True)
 
-    Status = Column(String, nullable=False, default="pending")  # pending, assigned, accepted, in_progress, completed, cancelled, rejected
+    RequestDescription = Column(String(1000), nullable=True)
 
-    AssignedAt = Column(DateTime, nullable=True)
-    AcceptedAt = Column(DateTime, nullable=True)
-    CompletedAt = Column(DateTime, nullable=True)
-    CancelledAt = Column(DateTime, nullable=True)
+    Status = Column(String(50), default="pending")
 
-    CustomerNotes = Column(Text, nullable=True)
-    ProviderNotes = Column(Text, nullable=True)
-
-    EstimatedPrice = Column(Float, nullable=True)
     FinalPrice = Column(Float, nullable=True)
-    PaymentStatus = Column(String, nullable=True, default="pending")  # pending, paid, failed
+    AssignmentMode = Column(String(50), nullable=True)
+    NotificationPreference = Column(String(50), nullable=True)
 
-    AssignmentMode = Column(String, nullable=True, default="random")  # random, visible_profile
-
-    NotificationPreference = Column(String, nullable=True, default="both")  # whatsapp, sms, both
-
-    CreatedAt = Column(DateTime, default=ist_now)
-    UpdatedAt = Column(DateTime, default=ist_now)
-
+    CreatedAt = Column(DateTime, default=datetime.utcnow)
+    UpdatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
